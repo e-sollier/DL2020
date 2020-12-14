@@ -16,7 +16,7 @@ def generate_dataset(nb_classes,nb_obs,nb_features,nb_characteristic_features,si
     nb_characteristic_features: number of features that are specific to each class
     signal: how much the value is increased for the characteristic features
     diffusion_coefficient: how much each value transmits its value to the next
-    noise: noise level
+    noise: noise level added at the end
     Returns:
     X: feature matrix
     y: labels
@@ -32,21 +32,21 @@ def generate_dataset(nb_classes,nb_obs,nb_features,nb_characteristic_features,si
         characteristic_features = np.random.choice(nb_features,size=nb_characteristic_features,replace=False)
         for i in range(nb_obs):
             # Start from a random vector
-            features = np.random.normal(0,1,nb_features)
+            features = np.abs(np.random.normal(0,1,nb_features))
             # TODO: force features to be positive or accept negative features ?
             # Increase the value for the characteristic features
             features[characteristic_features] += signal
+            features = features / np.linalg.norm(features)
             # Diffuse values through the graph
             # TODO: add different edge labels (positive or negative regulation)
             # TODO: maybe also give a weight to each edge
             # TODO: maybe do several iterations of diffusion ?  
             features_next = np.copy(features)
             for e in graph.es:
-                features_next[e.target]+= features[e.source] * diffusion_coefficient
-            # TODO: add additional noise on top ? 
+                features_next[e.target]+= features[e.source] * diffusion_coefficient / graph.vs[e.source].degree()
+                features_next[e.source]-= features[e.source] * diffusion_coefficient / graph.vs[e.source].degree()
+            if noise >0:
+                features+=np.random.normal(0,noise,nb_features)
             X.append(features_next)
             y.append(c)
-    return X,y,graph
-
-
-
+    return np.array(X),y,graph
