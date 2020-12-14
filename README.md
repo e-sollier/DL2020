@@ -6,4 +6,6 @@ The goal is to see how Graph Neural Networks can improve compared to standard ML
 ## Dependencies
 * numpy
 * torch
+* pytorch geometrics
+* scikit-learn
 * python-igraph
