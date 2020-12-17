@@ -2,7 +2,7 @@ import numpy as np
 import igraph as ig 
 
 
-def generate_dataset(nb_classes,nb_obs,nb_features,nb_characteristic_features,signal,diffusion_coefficient,noise,random_seed=0):
+def generate_dataset(nb_classes,nb_obs,nb_features,nb_edges,nb_characteristic_features,signal,diffusion_coefficient,noise,random_seed):
     """
     Generates a dataset. 
     Each class is defined by a set of characteristic features. 
@@ -24,7 +24,7 @@ def generate_dataset(nb_classes,nb_obs,nb_features,nb_characteristic_features,si
     """
     np.random.seed(random_seed)
     # Generate a scale-free graph with the Barabasi Albert model.
-    graph = ig.Graph.Barabasi(nb_features,3,directed=True)
+    graph = ig.Graph.Barabasi(nb_features,nb_edges,directed=False)
     X = []
     y= []
     for c in range(nb_classes):
