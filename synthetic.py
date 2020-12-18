@@ -2,7 +2,7 @@ import numpy as np
 import igraph as ig 
 
 
-def generate_dataset(nb_classes,nb_obs,nb_features,nb_characteristic_features,signal,diffusion_coefficient,noise,random_seed=0):
+def generate_dataset(nb_classes,nb_obs,nb_features,nb_edges,nb_characteristic_features,signal,diffusion_coefficient,noise,model,random_seed=0):
     """
     Generates a dataset. 
     Each class is defined by a set of characteristic features. 
@@ -24,7 +24,10 @@ def generate_dataset(nb_classes,nb_obs,nb_features,nb_characteristic_features,si
     """
     np.random.seed(random_seed)
     # Generate a scale-free graph with the Barabasi Albert model.
-    graph = ig.Graph.Barabasi(nb_features,3,directed=True)
+    if model=="BA":
+        graph = ig.Graph.Barabasi(nb_features,nb_edges,directed=False)
+    else:
+        graph = ig.Graph.Erdos_Renyi(n=nb_features,m=nb_edges*nb_features,directed=False)
     X = []
     y= []
     for c in range(nb_classes):
@@ -43,10 +46,10 @@ def generate_dataset(nb_classes,nb_obs,nb_features,nb_characteristic_features,si
             # TODO: maybe do several iterations of diffusion ?  
             features_next = np.copy(features)
             for e in graph.es:
-                features_next[e.target]+= features[e.source] * diffusion_coefficient / graph.vs[e.source].degree()
-                features_next[e.source]-= features[e.source] * diffusion_coefficient / graph.vs[e.source].degree()
+                features_next[e.target]+= (features[e.source] - features[e.target]) * diffusion_coefficient
+                features_next[e.source]+= (features[e.target] - features[e.source]) * diffusion_coefficient
             if noise >0:
-                features+=np.random.normal(0,noise,nb_features)
+                features_next+=np.random.normal(0,noise,nb_features)
             X.append(features_next)
             y.append(c)
     return np.array(X),y,graph
