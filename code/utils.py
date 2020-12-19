@@ -143,7 +143,7 @@ def gen_syn_data(
                     features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[0]
                     features_next[e.source]+= (features[e.target] - features[e.source]) * diff_coef[0]
                 features = features_next
-            if noise > 0:
+            if noise[0] > 0:
                 features += np.random.normal(0, noise[0], n_features)
             X_train.append(features)
             y_train.append(c)
@@ -164,7 +164,7 @@ def gen_syn_data(
                     features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[1]
                     features_next[e.source]+= (features[e.target] - features[e.source]) * diff_coef[1]
                 features = features_next
-            if noise > 0:
+            if noise[1] > 0:
                 features += np.random.normal(0, noise[1], n_features)
             X_test.append(features)
             y_test.append(c)
