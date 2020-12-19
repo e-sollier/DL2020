@@ -6,8 +6,6 @@ class Dataset():
         tag, 
         input_dir= 'data_input', 
         output_dir='data_input',
-        type='syn', 
-        io='create',
         random_seed=1996):
         self.input_dir  = os.path.join(input_dir, tag)
         self.output_dir = os.path.join(output_dir, tag)
@@ -21,7 +19,7 @@ class Dataset():
         self.Ah_test  = None
         self.seed = random_seed
 
-    def create_syn(self, **kwargs, random_seed=self.seed):
+    def create_syn(self, random_seed=self.seed, **kwargs):
         self.X_train, self.y_train, self.A_train,\
             self.X_test, self.y_test, self.A_test = gen_syn_data(kwargs)
 
