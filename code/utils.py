@@ -1,10 +1,16 @@
 import numpy as np
 import igraph as ig 
 import csv
-import numpy as np
 import pandas as pd
 import os
 from graspologic.simulations import sbm
+from sklearn.covariance import GraphicalLassoCV
+import matplotlib.pyplot as plt
+import networkx as nx
+from community import community_louvain
+import umap
+from plotnine import *
+
 
 def load_adj(path):
     full_path = os.path.join(path, 'adj.txt')
@@ -22,7 +28,7 @@ def load_adj(path):
     return adj, num_nodes
 
 
-def load_classes(path, type, max_labels=None):
+def load_classes(path, type, max_labels=None, **kwargs):
     full_path = os.path.join(path, 'classes_{type}.txt'.format(type=type))
     classes = pd.read_csv(full_path)
     nans = pd.isna(classes['class_']).values
@@ -50,7 +56,7 @@ def load_classes(path, type, max_labels=None):
         return labels, one_hot_labels, num_graphs, max_labels + 1, nans
 
 
-def load_features(path, type, is_binary=False):
+def load_features(path, type, is_binary=False, **kwargs):
     full_path = os.path.join(path, 'data_{type}.txt'.format(type=type))
     num_nodes = -1
     features = []
@@ -69,17 +75,15 @@ def load_features(path, type, is_binary=False):
     return features
 
 
-
-
 def gen_syn_data(
     n_classes=3,
     n_obs_train=200,
     n_obs_test=100,
-    n_features=50,
+    n_features=10,
     n_edges=3,
-    n_characteristic_features=10,
-    signal=[0.01, 0.01],
-    diff_coef=[0.01, 0.01],
+    n_char_features=10,
+    signal=[10, 10],
+    diff_coef=[0.1, 0.1],
     noise=[0.01, 0.01],
     n_communities=5,
     probs=[0.5, 0.1],
@@ -96,7 +100,7 @@ def gen_syn_data(
     n_classes: number of classes
     n_obs: number of observations per class
     n_features: number of features, each corresponding to a node in the graph
-    n_characteristic_features: number of features that are specific to each class
+    n_char_features: number of features that are specific to each class
     signal: how much the value is increased for the characteristic features
     diff_coef: how much each value transmits its value to the next
     noise: noise level added at the end
@@ -108,11 +112,11 @@ def gen_syn_data(
     np.random.seed(random_seed)
     # Generate a scale-free graph with the Barabasi Albert model.
     if model=="BA":
-        graph_train = ig.Graph.Barabasi(n_features, n_edges, directed=False)
-        graph_test  = graph_train
+        graph_train  = graph_test = ig.Graph.Barabasi(n_features, n_edges, directed=False)
+        adj_train = adj_test = np.array(graph_train.get_adjacency().data)
     if model=='ER':
-        graph_train = ig.Graph.Erdos_Renyi(n=n_features, m=n_edges*n_features, directed=False)
-        graph_test  = graph_train
+        graph_train = graph_test = ig.Graph.Erdos_Renyi(n=n_features, m=n_edges*n_features, directed=False)
+        adj_train = adj_test = np.array(graph_train.get_adjacency().data)
     if model=='SBM':
         n = [n_features // n_communities] * n_communities
         p = np.full((n_communities, n_communities), probs[1])
@@ -126,13 +130,13 @@ def gen_syn_data(
     y_test  = []
     for c in range(n_classes):
         # Draw the features which define this class
-        characteristic_features = np.random.choice(n_features,size=n_characteristic_features,replace=False)
+        char_features = np.random.choice(n_features,size=n_char_features,replace=False)
         for i in range(n_obs_train):
             # Start from a random vector
             features = np.abs(np.random.normal(0, 1, n_features))
             # TODO: force features to be positive or accept negative features ?
             # Increase the value for the characteristic features
-            features[characteristic_features] += signal[0]
+            features[char_features] += np.abs(np.random.normal(signal[0], 1, n_char_features))
             features = features / np.linalg.norm(features)
             # Diffuse values through the graph
             # TODO: add different edge labels (positive or negative regulation)
@@ -153,7 +157,7 @@ def gen_syn_data(
             features = np.abs(np.random.normal(0, 1, n_features))
             # TODO: force features to be positive or accept negative features ?
             # Increase the value for the characteristic features
-            features[characteristic_features] += signal[1]
+            features[char_features] += np.abs(np.random.normal(signal[1], 1, n_char_features))
             features = features / np.linalg.norm(features)
             # Diffuse values through the graph
             # TODO: add different edge labels (positive or negative regulation)
@@ -175,5 +179,137 @@ def gen_syn_data(
     X_test    = np.array(X_test)[test_idx, :]
     y_test    = np.array(y_test)[test_idx]
 
-    return X_train, np.array(y_train), graph_train.get_adjacency(), \
-        np.array(X_test), np.array(y_test), graph_test.get_adjacency()
+    return X_train, y_train, adj_train, \
+        X_test, y_test, adj_test
+
+def glasso(data, **kwargs):
+    cov = GraphicalLassoCV(kwargs).fit(data)
+    precision_matrix = cov.get_precision()
+    adjacency_matrix = precision_matrix.astype(bool).astype(int)
+    return adjacency_matrix
+
+# def compare_graphs(A, Ah):
+#     TP = np.sum(A[A==1] == Ah[A==1]) # true positive rate
+#     TN = np.sum(A[A==0] == Ah[A==0]) # true negative rate
+#     FP = np.sum(A[A==0] != Ah[A==0]) # false positive rate
+#     FN = np.sum(A[A==1] != Ah[A==1]) # false negative rate
+#     precision = TP / (TP + FP)
+#     recall    = TP / (TP + FN)
+#     f1_score  = 2 * precision * recall / (precision + recall)
+#     return precision, recall, f1_score
+
+def compare_graphs(A, Ah):
+    a = A - Ah
+    return np.sqrt(np.max(np.linalg.eigvals(np.inner(a, a))))
+
+
+def community_layout(g, partition):
+    """
+    Compute the layout for a modular graph.
+
+
+    Arguments:
+    ----------
+    g -- networkx.Graph or networkx.DiGraph instance
+        graph to plot
+
+    partition -- dict mapping int node -> int community
+        graph partitions
+
+
+    Returns:
+    --------
+    pos -- dict mapping int node -> (float x, float y)
+        node positions
+
+    """
+
+    pos_communities = _position_communities(g, partition, scale=3.)
+
+    pos_nodes = _position_nodes(g, partition, scale=1.)
+
+    # combine positions
+    pos = dict()
+    for node in g.nodes():
+        pos[node] = pos_communities[node] + pos_nodes[node]
+
+    return pos
+
+def _position_communities(g, partition, **kwargs):
+
+    # create a weighted graph, in which each node corresponds to a community,
+    # and each edge weight to the number of edges between communities
+    between_community_edges = _find_between_community_edges(g, partition)
+
+    communities = set(partition.values())
+    hypergraph = nx.DiGraph()
+    hypergraph.add_nodes_from(communities)
+    for (ci, cj), edges in between_community_edges.items():
+        hypergraph.add_edge(ci, cj, weight=len(edges))
+
+    # find layout for communities
+    pos_communities = nx.spring_layout(hypergraph, **kwargs)
+
+    # set node positions to position of community
+    pos = dict()
+    for node, community in partition.items():
+        pos[node] = pos_communities[community]
+
+    return pos
+
+def _find_between_community_edges(g, partition):
+
+    edges = dict()
+
+    for (ni, nj) in g.edges():
+        ci = partition[ni]
+        cj = partition[nj]
+
+        if ci != cj:
+            try:
+                edges[(ci, cj)] += [(ni, nj)]
+            except KeyError:
+                edges[(ci, cj)] = [(ni, nj)]
+
+    return edges
+
+def _position_nodes(g, partition, **kwargs):
+    """
+    Positions nodes within communities.
+    """
+
+    communities = dict()
+    for node, community in partition.items():
+        try:
+            communities[community] += [node]
+        except KeyError:
+            communities[community] = [node]
+
+    pos = dict()
+    for ci, nodes in communities.items():
+        subgraph = g.subgraph(nodes)
+        pos_subgraph = nx.spring_layout(subgraph, **kwargs)
+        pos.update(pos_subgraph)
+
+    return pos
+
+def draw_graph(adjacency_matrix, node_color=None):
+    rows, cols = np.where(adjacency_matrix == 1)
+    edges = zip(rows.tolist(), cols.tolist())
+    g = nx.Graph()
+    g.add_edges_from(edges)
+    partition = community_louvain.best_partition(g)
+    pos = community_layout(g, partition)
+    if node_color == None:
+      node_color = list(partition.values())
+    print(g.number_of_nodes())
+    print(len(node_color))
+    nx.draw(g, pos, node_color=node_color); 
+    return list(partition.values())
+
+def plot_lowDim(data, labels = 'NA', title=None):
+    #TODO: add shape.
+    reducer   = umap.UMAP()
+    embedding = reducer.fit_transform(data)
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=labels, cmap='Spectral', s=5)
+    plt.title(title, fontsize=24)
