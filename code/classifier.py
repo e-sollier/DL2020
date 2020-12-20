@@ -1,5 +1,6 @@
 from model import *
 import torch.optim as optim
+import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, random_split
 
 class Classifier():
@@ -13,21 +14,20 @@ class Classifier():
     
     def fit(self,dataloader,epochs,verbose=False):
         self.net.train()
-        for epoch in range(epochs):  # loop over the dataset multiple times
-            running_loss = 0.0
-            for i, data in enumerate(dataloader, 0):
-                # get the inputs; data is a list of [inputs, labels]
-                inputs, labels = data
-                # zero the parameter gradients
+        for epoch in range(epochs):
+            total_loss = 0
+            for batch in dataloader:
                 self.optimizer.zero_grad()
-                # forward + backward + optimize
-                outputs = self.net(inputs)
-                loss = self.criterion(outputs, labels)
+                pred = self.net(batch)
+                label = batch.y
+                loss = self.criterion(pred,label)
                 loss.backward()
                 self.optimizer.step()
-                running_loss += loss.item() * inputs.size(0)
+                total_loss += loss.item() * batch.num_graphs
+            total_loss /= len(dataloader.dataset)
             if verbose and epoch%(epochs//10)==0:
-                print('[%d] loss: %.3f' % (epoch + 1, running_loss/len(dataloader.dataset)))
+                print('[%d] loss: %.3f' % (epoch + 1,total_loss))
+        
 
     def eval(self,dataloader,verbose=False):
         self.net.eval()
@@ -37,9 +37,9 @@ class Classifier():
         y_pred = []
         with torch.no_grad():
             for data in dataloader:
-                X, labels = data
+                X, graphs, labels = data
                 y_true.append(labels)
-                outputs = self.net(X)
+                outputs = self.net(data)
                 _, predicted = torch.max(outputs.data, 1)
                 y_pred.append(predicted)
         accuracy, conf_mat, precision, recall, f1_score = compute_metrics(y_true, y_pred)

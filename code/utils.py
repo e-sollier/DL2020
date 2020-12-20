@@ -11,6 +11,8 @@ from community import community_louvain
 import umap
 from plotnine import *
 from sklearn.metrics import *
+import torch
+from torch_geometric.data import Data, DataLoader
 
 
 def load_adj(path):
@@ -322,3 +324,37 @@ def compute_metrics(y_true, y_pred):
     recall    = recall_score(y_true, y_pred, average='weighted')
     f1_score  = f1_score(y_true, y_pred, average='weighted')
     return accuracy, conf_mat, precision, recall, f1_score
+
+
+
+
+
+def convert_graph_dataset(graph, X, y, undirected=True):
+    """
+    Converts an igraph graph and a dataset (X,y) to a dataloader of pytorch geometrics graphs.
+    In the output, all of the graphs will have the same connectivity (given by the input graph),
+    but the node features will be the features from X.
+    """
+    n_obs, n_features = X.shape
+    rows, cols = np.where(adjacency_matrix == 1)
+    edges      = zip(rows.tolist(), cols.tolist())
+    sources    = []
+    targets    = []
+    for edge in edges:
+        sources.append(edge[0])
+        targets.append(edge[1])
+        if undirected:
+            sources.append(edge[0])
+            targets.append(edge[1])
+    edge_index  = torch.tensor([sources,targets])
+    list_graphs = []
+    for i in range(n_obs):
+        y_tensor = torch.tensor(y[i])
+        Z_tensor = torch.tensor(X[i,:]).view(X.shape[1],1).float()
+        data     = Data(X=X_tensor, edge_index=edge_index, y=y_tensor)
+        data.num_graphs = X.shape[0]
+        data.num_nodes = X.shape[1]
+        list_graphs.append(data.coalesce())
+
+    dataloader = DataLoader(list_graphs, batch_size=32, shuffle=True)
+    return dataloader

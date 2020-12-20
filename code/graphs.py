@@ -5,7 +5,7 @@ from torch_geometric.data import Data, DataLoader
 
 
 
-def convert_graph_dataset(graph,X,y,undirected=False):
+def get_dataloader(graph, X, y, undirected=False):
     """
     Converts an igraph graph and a dataset (X,y) to a dataloader of pytorch geometrics graphs.
     In the output, all of the graphs will have the same connectivity (given by the input graph),

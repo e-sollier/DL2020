@@ -48,6 +48,12 @@ class Dataset():
         # TODO: add!
         pass
 
+    def dataloader(self, dataset = 'train'):
+        if dataset == 'train':
+            return get_dataloader(self.A_train, X_train, y_train)
+        else
+            return get_dataloader(self.A_train, X_test, y_test)
+
     def save(self):
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
