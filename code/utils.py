@@ -10,6 +10,7 @@ import networkx as nx
 from community import community_louvain
 import umap
 from plotnine import *
+from sklearn.metrics import *
 
 
 def load_adj(path):
@@ -313,3 +314,11 @@ def plot_lowDim(data, labels = 'NA', title=None):
     embedding = reducer.fit_transform(data)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=labels, cmap='Spectral', s=5)
     plt.title(title, fontsize=24)
+
+def compute_metrics(y_true, y_pred):
+    accuracy  = accuracy_score(y_true, y_pred)
+    conf_mat  = confusion_matrix(y_true, y_pred)
+    precision = precision_score(y_true, y_pred, average='weighted')
+    recall    = recall_score(y_true, y_pred, average='weighted')
+    f1_score  = f1_score(y_true, y_pred, average='weighted')
+    return accuracy, conf_mat, precision, recall, f1_score
