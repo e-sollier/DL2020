@@ -1,63 +1,109 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch_geometric.nn import GCNConv
 
 
 
-class MLP(nn.Module):
+class NN(nn.Module):
     def __init__(self, \
         n_features, \
         n_classes, \
-        n_hidden=n_features, \
-        dropout=0):
-        super(MLP, self).__init__()
-        self.layers = []
-        self.n_layers = len(n_hidden)
-        self.dropout = dropout
-        self.layers.append(nn.Linear(n_features,n_hidden[0]))
-        for i in range(n_layers-2):
-            self.layers.append(nn.Linear(n_hidden[i],n_hidden[(i+1)]))
-        self.last_layer = nn.Linear(n_hidden[(n_layers-1)], n_classes)
+        n_hidden_GNN=[], \
+        n_hidden_FC=[10], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(NN, self).__init__()
+        self.n_features   = n_features
+        self.n_classes    = n_classes
+        self.layers_GNN   = []
+        self.layers_FC    = []
+        self.n_layers_GNN = len(n_hidden_GNN)
+        self.n_layers_FC  = len(n_hidden_FC)
+        self.dropout_GNN  = dropout_GNN
+        self.dropout_FC   = dropout_FC
+
+        if n_layers_FC > 0:
+            self.layers_FC.append(nn.Linear(n_features, n_hidden_FC[0]))
+            if self.n_layers_FC > 1:
+                for i in range(self.n_layers_FC-2):
+                    self.layers_FC.append(nn.Linear(n_hidden_FC[i], n_hidden_FC[(i+1)]))
+            self.last_layer_FC = nn.Linear(n_hidden_FC[(n_layers_FC-1)], n_classes)
+        else:
+            self.last_layer_FC = nn.Linear(n_features, n_classes)
 
     def forward(self, data):
         x = data.X
-        for layer in self.layers:
+        edge_index = data.edge_index
+        for layer in self.layers_GNN:
+            x = F.relu(layer(x, edge_index))
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        if self.n_layers_GNN > 0:
+            x = x.view(-1, self.n_features*self.n_hidden)
+            x = F.relu(last_layer_GNN(x))
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        for layer in self.layers_FC:
             x = F.relu(layer(x))
             x = F.dropout(x, p=self.dropout, training=self.training)
-        x = self.last_layer(x)
+        x = self.last_layer_FC(x)
         return x
 
-# class GraphSAGE(MLP):
-#     def __init__(self, \
-#         n_features, \
-#         n_classes, \
-#         n_hidden=n_features, \
-#         dropout=0):
-#         super(GraphSAGE, self).__init__(n_features, n_classes, n_hidden, dropout)
-#         self.n_features = n_features
-#         self.n_classes = n_classes
-#         self.n_hidden = n_hidden
-#         #self.conv1 = GCNConv(1, n_hidden)
-#         #self.conv1 = pyg_nn.GINConv(nn.Sequential(nn.Linear(1,n_hidden),nn.ReLU(), nn.Linear(n_hidden, n_hidden)))
 
-#         #Use GraphSAGE layer:
-#         #https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.SAGEConv
-#         self.conv1 = pyg_nn.SAGEConv(1,n_hidden)
-#         #self.conv2 = GCNConv(n_hidden,n_hidden)
-#         self.linear = nn.Linear(n_features*n_hidden,n_classes)
+class GraphSAGE(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(GraphSAGE, self).__init__(\
+            n_features, n_classes, n_hidden_GCN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
 
-#     def forward(self, data):
-#         x, edge_index = data.x, data.edge_index
+        self.layers_GNN.append(pyg_nn.SAGEConv(1, self.n_hidden_GNN[0]))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-2):
+                self.layers_GNN.append(pyg_nn.SAGEConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
+        self.last_layer_GNN = \
+            nn.Linear(n_features*n_hidden_GNN[(n_layers_GNN-1)], n_features)
 
-#         x = self.conv1(x, edge_index)
-#         x = F.relu(x)
-#         #x = F.dropout(x, training=self.training)
-#         #x = self.conv2(x, edge_index)
-#         #x = F.relu(x)
-        
-#         # Resize from (batch_size * n_features, n_hidden) to (batch_size, n_features * n_hidden)
-#         x = x.view(-1,self.n_features*self.n_hidden)
-#         x = self.linear(x)
+class NNConvNet(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(NNConvNet, self).__init__(\
+            n_features, n_classes, n_hidden_GCN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
 
-#         return x
+        self.layers_GNN.append(pyg_nn.NNConv(1, self.n_hidden_GNN[0]))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-2):
+                self.layers_GNN.append(pyg_nn.NNConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
+        self.last_layer_GNN = \
+            nn.Linear(n_features*n_hidden_GNN[(n_layers_GNN-1)], n_features)
+
+class ChebNet(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        K=4, \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(ChebNet, self).__init__(\
+            n_features, n_classes, n_hidden_GCN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.ChebConv(1, self.n_hidden_GNN[0], K))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-2):
+                self.layers_GNN.append(pyg_nn.ChebConv(n_hidden_GNN[i], n_hidden_GNN[(i+1), K]))
+        self.last_layer_GNN = \
+            nn.Linear(n_features*n_hidden_GNN[(n_layers_GNN-1)], n_features
 
