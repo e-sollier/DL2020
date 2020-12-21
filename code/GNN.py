@@ -17,7 +17,7 @@ class GNN_classifier():
         self.net.train()
         for epoch in range(epochs):
             total_loss = 0
-            for batch in dataloader:
+            for batch in dataloader.dataset:
                 self.optimizer.zero_grad()
                 pred = self.net(batch)
                 label = batch.y
@@ -32,7 +32,7 @@ class GNN_classifier():
     def eval(self,dataloader,verbose=False):
         self.net.eval()
         correct = 0
-        for data in dataloader:
+        for data in dataloader.dataset:
             with torch.no_grad():
                 pred = self.net(data)
                 pred = pred.argmax(dim=1)

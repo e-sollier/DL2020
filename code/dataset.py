@@ -19,21 +19,21 @@ class Dataset():
         self.Ah_test  = None
         self.seed = random_seed
 
-    def create_syn(self, random_seed=self.seed, **kwargs):
+    def create_syn(self, **kwargs):
         self.X_train, self.y_train, self.A_train,\
-            self.X_test, self.y_test, self.A_test = gen_syn_data(kwargs)
+            self.X_test, self.y_test, self.A_test = gen_syn_data(random_seed=self.seed, **kwargs)
 
     def load(self, **kwargs):
-        self.X_train = load_features(self.input_dir, 'train', kwargs)
-        self.y_train = load_classes(self.input_dir, 'train', kwargs)
-        self.X_test  = load_features(self.input_dir, 'test', kwargs)
-        self.y_test  = load_classes(self.input_dir, 'test', kwargs)
+        self.X_train = load_features(self.input_dir, 'train', **kwargs)
+        self.y_train = load_classes(self.input_dir, 'train', **kwargs)
+        self.X_test  = load_features(self.input_dir, 'test', **kwargs)
+        self.y_test  = load_classes(self.input_dir, 'test', **kwargs)
 
-    def create_graph(self, method='glasso', **kwargs):
+    def create_graph(self, method='glasso', alphas=5, n_jobs=None):
+        #TODO: add **kwargs
         if method == 'glasso':
-            self.Ah_train = glasso(self.X_train)
-            self.Ah_test  = glasso(self.X_train)
-        pass
+            self.Ah_train = glasso(self.X_train, alphas, n_jobs)
+            self.Ah_test  = glasso(self.X_test, alphas, n_jobs)
 
     def score_graphs(self):
         # TODO: add error trap
@@ -50,9 +50,9 @@ class Dataset():
 
     def dataloader(self, dataset = 'train'):
         if dataset == 'train':
-            return get_dataloader(self.A_train, X_train, y_train)
-        else
-            return get_dataloader(self.A_train, X_test, y_test)
+            return get_dataloader(self.A_train, self.X_train, self.y_train)
+        else:
+            return get_dataloader(self.A_train, self.X_test, self.y_test)
 
     def save(self):
         if not os.path.exists(self.output_dir):

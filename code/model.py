@@ -68,6 +68,28 @@ class GraphSAGE(NN):
         self.last_layer_GNN = \
             nn.Linear(n_features*n_hidden_GNN[(n_layers_GNN-1)], n_features)
 
+
+class ChebNet(NN):
+    def __init__(self,
+        n_features,
+        n_classes,
+        n_hidden_GNN=[10],
+        n_hidden_FC=[],
+        K=4,
+        dropout_GNN=0,
+        dropout_FC=0):
+        super(ChebNet, self).__init__(\
+            n_features, n_classes, n_hidden_GCN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.ChebConv(1, self.n_hidden_GNN[0], K))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-2):
+                self.layers_GNN.append(pyg_nn.ChebConv(n_hidden_GNN[i], n_hidden_GNN[(i+1), K]))
+        self.last_layer_GNN = \
+            nn.Linear(n_features*n_hidden_GNN[(n_layers_GNN-1)], n_features)
+
+
 class NNConvNet(NN):
     def __init__(self, \
         n_features, \
@@ -86,24 +108,3 @@ class NNConvNet(NN):
                 self.layers_GNN.append(pyg_nn.NNConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
         self.last_layer_GNN = \
             nn.Linear(n_features*n_hidden_GNN[(n_layers_GNN-1)], n_features)
-
-class ChebNet(NN):
-    def __init__(self, \
-        n_features, \
-        n_classes, \
-        n_hidden_GNN=[10], \
-        n_hidden_FC=[], \
-        K=4, \
-        dropout_GNN=0, \
-        dropout_FC=0):
-        super(ChebNet, self).__init__(\
-            n_features, n_classes, n_hidden_GCN,\
-            n_hidden_FC, dropout_FC, dropout_GNN)
-
-        self.layers_GNN.append(pyg_nn.ChebConv(1, self.n_hidden_GNN[0], K))
-        if self.n_layers_GNN > 1:
-            for i in range(self.n_layers_GNN-2):
-                self.layers_GNN.append(pyg_nn.ChebConv(n_hidden_GNN[i], n_hidden_GNN[(i+1), K]))
-        self.last_layer_GNN = \
-            nn.Linear(n_features*n_hidden_GNN[(n_layers_GNN-1)], n_features
-

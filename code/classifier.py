@@ -4,11 +4,32 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, random_split
 
 class Classifier():
-    def __init__(self,n_features,n_classes,n_layers, classifier='MLP', lr=.01, momentum=.9):
+    def __init__(self,
+        n_features,
+        n_classes,
+        n_hidden_GNN=[10],
+        n_hidden_FC=[],
+        K=4,
+        dropout_GNN=0,
+        dropout_FC=0, 
+        classifier='MLP', 
+        lr=.01, 
+        momentum=.9):
         if classifier == 'MLP': 
-            self.net = MLP(n_features=n_features,n_layers=n_layers,n_classes=n_classes)
+            self.net = NN(n_features=n_features, n_classes=n_classes,\
+                n_hidden_FC=n_hidden_FC, dropout_FC=dropout_FC)
         if classifier == 'graphSAGE':
-            self.net = GraphSage(n_features=n_features,n_layers=n_layers,n_classes=n_classes)
+            self.net = GraphSage(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN)
+        if classifier == 'Chebnet':
+            self.net = ChebNet(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN, K=k)
+        if classifier == 'ConvNet':
+            self.net = NNConvNet(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN)
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
     
@@ -16,7 +37,7 @@ class Classifier():
         self.net.train()
         for epoch in range(epochs):
             total_loss = 0
-            for batch in dataloader:
+            for batch in dataloader.dataset:
                 self.optimizer.zero_grad()
                 pred = self.net(batch)
                 label = batch.y
@@ -36,7 +57,7 @@ class Classifier():
         y_true = []
         y_pred = []
         with torch.no_grad():
-            for data in dataloader:
+            for data in dataloader.dataset:
                 X, graphs, labels = data
                 y_true.append(labels)
                 outputs = self.net(data)
@@ -45,7 +66,7 @@ class Classifier():
         accuracy, conf_mat, precision, recall, f1_score = compute_metrics(y_true, y_pred)
         if verbose:
             print('Accuracy: {:.3f}'.format(accuracy))
-            print('Confusion Matrix: \n', conf_mat)
+            print('Confusion Matrix:n', conf_mat)
             print('Precision: {:.3f}'.format(precision))
             print('Recall: {:.3f}'.format(recall))
             print('f1_score: {:.3f}'.format(f1_score))
