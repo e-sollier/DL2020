@@ -32,7 +32,7 @@ class Classifier():
                 dropout_FC=dropout_FC, dropout_GNN=dropout_GNN)
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
-    
+ 
     def fit(self,dataloader,epochs,verbose=False):
         self.net.train()
         for epoch in range(epochs):

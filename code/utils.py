@@ -308,7 +308,7 @@ def draw_graph(adjacency_matrix, node_color=None):
       node_color = list(partition.values())
     print(g.number_of_nodes())
     print(len(node_color))
-    nx.draw(g, pos, node_color=node_color); 
+    nx.draw(g, pos, node_color=node_color, node_size=10); 
     return list(partition.values())
 
 def plot_lowDim(data, labels = 'NA', title=None):
@@ -351,7 +351,7 @@ def get_dataloader(graph, X, y, undirected=True):
     list_graphs = []
     for i in range(n_obs):
         y_tensor = torch.tensor(y[i])
-        X_tensor = torch.tensor(X[i,:]).view(X.shape[1],1).float()
+        X_tensor = torch.tensor(X[i,:]).view(1,X.shape[1]).float()
         data     = Data(X=X_tensor, edge_index=edge_index, y=y_tensor)
         data.num_graphs = X.shape[0]
         data.num_nodes = X.shape[1]

@@ -23,12 +23,12 @@ class NN(nn.Module):
         self.dropout_GNN  = dropout_GNN
         self.dropout_FC   = dropout_FC
 
-        if n_layers_FC > 0:
+        if self.n_layers_FC > 0:
             self.layers_FC.append(nn.Linear(n_features, n_hidden_FC[0]))
             if self.n_layers_FC > 1:
                 for i in range(self.n_layers_FC-2):
                     self.layers_FC.append(nn.Linear(n_hidden_FC[i], n_hidden_FC[(i+1)]))
-            self.last_layer_FC = nn.Linear(n_hidden_FC[(n_layers_FC-1)], n_classes)
+            self.last_layer_FC = nn.Linear(n_hidden_FC[(self.n_layers_FC-1)], n_classes)
         else:
             self.last_layer_FC = nn.Linear(n_features, n_classes)
 
@@ -43,6 +43,7 @@ class NN(nn.Module):
             x = F.relu(last_layer_GNN(x))
             x = F.dropout(x, p=self.dropout, training=self.training)
         for layer in self.layers_FC:
+            x = layer(x)
             x = F.relu(layer(x))
             x = F.dropout(x, p=self.dropout, training=self.training)
         x = self.last_layer_FC(x)
