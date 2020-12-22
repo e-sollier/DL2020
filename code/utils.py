@@ -12,7 +12,8 @@ import umap
 from plotnine import *
 from sklearn.metrics import *
 import torch
-from torch_geometric.data import Data, DataLoader
+# from torch_geometric.data import Data, DataLoader
+import torch_geometric.data as geo_dt
 
 
 def load_adj(path):
@@ -323,8 +324,8 @@ def compute_metrics(y_true, y_pred):
     conf_mat  = confusion_matrix(y_true, y_pred)
     precision = precision_score(y_true, y_pred, average='weighted')
     recall    = recall_score(y_true, y_pred, average='weighted')
-    f1_score  = f1_score(y_true, y_pred, average='weighted')
-    return accuracy, conf_mat, precision, recall, f1_score
+    f1        = f1_score(y_true, y_pred, average='weighted')
+    return accuracy, conf_mat, precision, recall, f1
 
 
 
@@ -349,13 +350,16 @@ def get_dataloader(graph, X, y, undirected=True):
             targets.append(edge[1])
     edge_index  = torch.tensor([sources,targets])
     list_graphs = []
+    y = y.tolist()
+    print(y)
     for i in range(n_obs):
         y_tensor = torch.tensor(y[i])
-        X_tensor = torch.tensor(X[i,:]).view(1,X.shape[1]).float()
-        data     = Data(X=X_tensor, edge_index=edge_index, y=y_tensor)
-        data.num_graphs = X.shape[0]
-        data.num_nodes = X.shape[1]
+        X_tensor = torch.tensor(X[i,:]).view(1, X.shape[1]).float()
+        data     = geo_dt.Data(x=X_tensor, edge_index=edge_index, y=y_tensor)
+        # data     = geo_dt.Data(x=X_tensor, y=y_tensor)
+        # data.num_graphs = X.shape[0]
+        # data.num_nodes = X.shape[1]
         list_graphs.append(data.coalesce())
 
-    dataloader = DataLoader(list_graphs, batch_size=32, shuffle=True)
+    dataloader = geo_dt.DataLoader(list_graphs, batch_size=1, shuffle=True)
     return dataloader

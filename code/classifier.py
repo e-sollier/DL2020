@@ -2,6 +2,7 @@ from model import *
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, random_split
+from utils import compute_metrics
 
 class Classifier():
     def __init__(self,
@@ -33,11 +34,11 @@ class Classifier():
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
  
-    def fit(self,dataloader,epochs,verbose=False):
+    def fit(self,data_loader,epochs,verbose=False):
         self.net.train()
         for epoch in range(epochs):
             total_loss = 0
-            for batch in dataloader.dataset:
+            for batch in data_loader:
                 self.optimizer.zero_grad()
                 pred = self.net(batch)
                 label = batch.y
@@ -45,20 +46,20 @@ class Classifier():
                 loss.backward()
                 self.optimizer.step()
                 total_loss += loss.item() * batch.num_graphs
-            total_loss /= len(dataloader.dataset)
+            total_loss /= len(data_loader.dataset)
             if verbose and epoch%(epochs//10)==0:
                 print('[%d] loss: %.3f' % (epoch + 1,total_loss))
         
 
-    def eval(self,dataloader,verbose=False):
+    def eval(self,data_loader,verbose=False):
         self.net.eval()
         correct = 0
         total = 0
         y_true = []
         y_pred = []
         with torch.no_grad():
-            for data in dataloader.dataset:
-                X, graphs, labels = data
+            for data in data_loader:
+                X, graphs, labels = data.x, data.edge_index, data.y
                 y_true.append(labels)
                 outputs = self.net(data)
                 _, predicted = torch.max(outputs.data, 1)

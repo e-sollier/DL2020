@@ -48,7 +48,7 @@ class Dataset():
         # TODO: add!
         pass
 
-    def dataloader(self, dataset = 'train'):
+    def _dataloader(self, dataset = 'train'):
         if dataset == 'train':
             return get_dataloader(self.A_train, self.X_train, self.y_train)
         else:

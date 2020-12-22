@@ -26,26 +26,28 @@ class NN(nn.Module):
         if self.n_layers_FC > 0:
             self.layers_FC.append(nn.Linear(n_features, n_hidden_FC[0]))
             if self.n_layers_FC > 1:
-                for i in range(self.n_layers_FC-2):
+                print((self.n_layers_FC-2))
+                for i in range(self.n_layers_FC-1):
+                    print(i)
                     self.layers_FC.append(nn.Linear(n_hidden_FC[i], n_hidden_FC[(i+1)]))
             self.last_layer_FC = nn.Linear(n_hidden_FC[(self.n_layers_FC-1)], n_classes)
         else:
             self.last_layer_FC = nn.Linear(n_features, n_classes)
 
     def forward(self, data):
-        x = data.X
+        x = data.x
         edge_index = data.edge_index
         for layer in self.layers_GNN:
             x = F.relu(layer(x, edge_index))
-            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = F.dropout(x, p=self.dropout_GNN, training=self.training)
         if self.n_layers_GNN > 0:
             x = x.view(-1, self.n_features*self.n_hidden)
             x = F.relu(last_layer_GNN(x))
-            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = F.dropout(x, p=self.dropout_GNN, training=self.training)
         for layer in self.layers_FC:
-            x = layer(x)
+            # x = layer(x)
             x = F.relu(layer(x))
-            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = F.dropout(x, p=self.dropout_FC, training=self.training)
         x = self.last_layer_FC(x)
         return x
 
