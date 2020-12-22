@@ -26,7 +26,7 @@ class Classifier():
         if classifier == 'Chebnet':
             self.net = ChebNet(n_features=n_features, n_classes=n_classes,\
                 n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
-                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN, K=k)
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN, K=K)
         if classifier == 'ConvNet':
             self.net = NNConvNet(n_features=n_features, n_classes=n_classes,\
                 n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \

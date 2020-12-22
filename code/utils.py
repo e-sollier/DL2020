@@ -349,12 +349,13 @@ def get_dataloader(graph, X, y, undirected=True):
             sources.append(edge[0])
             targets.append(edge[1])
     edge_index  = torch.tensor([sources,targets])
+
     list_graphs = []
     y = y.tolist()
     print(y)
     for i in range(n_obs):
         y_tensor = torch.tensor(y[i])
-        X_tensor = torch.tensor(X[i,:]).view(1, X.shape[1]).float()
+        X_tensor = torch.tensor(X[i,:]).view(X.shape[1], 1).float()
         data     = geo_dt.Data(x=X_tensor, edge_index=edge_index, y=y_tensor)
         # data     = geo_dt.Data(x=X_tensor, y=y_tensor)
         # data.num_graphs = X.shape[0]
