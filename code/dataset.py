@@ -50,11 +50,17 @@ class Dataset():
         # TODO: add!
         pass
 
-    def _dataloader(self, dataset = 'train'):
+    def _dataloader(self, dataset = 'train',use_true_graph=True):
         if dataset == 'train':
-            return get_dataloader(self.A_train, self.X_train, self.y_train,self.batch_size)
+            if use_true_graph:
+                return get_dataloader(self.A_train, self.X_train, self.y_train,self.batch_size)
+            else:
+                return get_dataloader(self.Ah_train, self.X_train, self.y_train,self.batch_size)
         else:
-            return get_dataloader(self.A_train, self.X_test, self.y_test,self.batch_size)
+            if use_true_graph:
+                return get_dataloader(self.A_train, self.X_test, self.y_test,self.batch_size)
+            else:
+                return get_dataloader(self.Ah_train, self.X_test, self.y_test,self.batch_size)
 
     def save(self):
         if not os.path.exists(self.output_dir):
