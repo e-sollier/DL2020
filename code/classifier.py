@@ -60,10 +60,10 @@ class Classifier():
         with torch.no_grad():
             for data in data_loader:
                 X, graphs, labels = data.x, data.edge_index, data.y
-                y_true.append(labels)
+                y_true.extend(list(labels))
                 outputs = self.net(data)
                 _, predicted = torch.max(outputs.data, 1)
-                y_pred.append(predicted)
+                y_pred.extend(list(predicted))
         accuracy, conf_mat, precision, recall, f1_score = compute_metrics(y_true, y_pred)
         if verbose:
             print('Accuracy: {:.3f}'.format(accuracy))

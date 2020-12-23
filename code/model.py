@@ -45,7 +45,8 @@ class NN(nn.Module):
     def forward(self, data):
         x = data.x
         if self.FC == True:
-            x = x.t()
+            # Resize from (1,batch_size * n_features) to (batch_size, n_features)
+            x = x.view(-1,self.n_features)
         edge_index = data.edge_index
         for layer in self.layers_GNN:
             x = F.relu(layer(x, edge_index))
@@ -55,7 +56,7 @@ class NN(nn.Module):
             x = F.relu(self.last_layer_GNN(x))
             x = F.dropout(x, p=self.dropout_GNN, training=self.training)
         for layer in self.layers_FC:
-            # x = layer(x)
+            x = layer(x)
             x = F.relu(layer(x))
             x = F.dropout(x, p=self.dropout_FC, training=self.training)
         x = self.last_layer_FC(x)
