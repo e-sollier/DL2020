@@ -191,6 +191,7 @@ def glasso(data, alphas=5, n_jobs=None):
     print(cov)
     precision_matrix = cov.get_precision()
     adjacency_matrix = precision_matrix.astype(bool).astype(int)
+    adjacency_matrix[np.diag_indices_from(adjacency_matrix)] = 0
     return adjacency_matrix
 
 # def compare_graphs(A, Ah):
