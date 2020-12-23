@@ -18,8 +18,8 @@ class NN(nn.Module):
         self.FC           = True
         self.n_features   = n_features
         self.n_classes    = n_classes
-        self.layers_GNN   = []
-        self.layers_FC    = []
+        self.layers_GNN   = nn.ModuleList()
+        self.layers_FC    = nn.ModuleList()
         self.n_layers_GNN = len(n_hidden_GNN)
         self.n_layers_FC  = len(n_hidden_FC)
         self.dropout_GNN  = dropout_GNN
@@ -42,12 +42,10 @@ class NN(nn.Module):
         else:
             self.last_layer_FC = nn.Linear(n_features, n_classes)
 
-    def forward(self, data):
-        x = data.x
+    def forward(self,x,edge_index):
         if self.FC == True:
             # Resize from (1,batch_size * n_features) to (batch_size, n_features)
             x = x.view(-1,self.n_features)
-        edge_index = data.edge_index
         for layer in self.layers_GNN:
             x = F.relu(layer(x, edge_index))
             x = F.dropout(x, p=self.dropout_GNN, training=self.training)
@@ -56,7 +54,6 @@ class NN(nn.Module):
             x = F.relu(self.last_layer_GNN(x))
             x = F.dropout(x, p=self.dropout_GNN, training=self.training)
         for layer in self.layers_FC:
-            x = layer(x)
             x = F.relu(layer(x))
             x = F.dropout(x, p=self.dropout_FC, training=self.training)
         x = self.last_layer_FC(x)
