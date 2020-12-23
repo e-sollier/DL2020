@@ -4,6 +4,7 @@ import csv
 import pandas as pd
 import os
 from graspologic.simulations import sbm
+from sklearn.preprocessing import StandardScaler
 from sklearn.covariance import GraphicalLassoCV
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -187,6 +188,8 @@ def gen_syn_data(
         X_test, y_test, adj_test
 
 def glasso(data, alphas=5, n_jobs=None):
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
     cov = GraphicalLassoCV(alphas=alphas, n_jobs=n_jobs).fit(data)
     print(cov)
     precision_matrix = cov.get_precision()
