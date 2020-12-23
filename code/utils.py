@@ -93,6 +93,7 @@ def gen_syn_data(
     probs=[0.5, 0.1],
     n_iter=3,
     model='SBM',
+    syn_method="diffusion",
     random_seed=1996):
     """
     Generates a dataset. 
@@ -114,68 +115,117 @@ def gen_syn_data(
     graph: underlying graph
     """
     np.random.seed(random_seed)
-    # Generate a scale-free graph with the Barabasi Albert model.
-    if model=="BA":
-        graph_train  = graph_test = ig.Graph.Barabasi(n_features, n_edges, directed=False)
-        adj_train = adj_test = np.array(graph_train.get_adjacency().data)
     if model=='ER':
+        # Generate a random graph with the Erdos-Renyi model.
         graph_train = graph_test = ig.Graph.Erdos_Renyi(n=n_features, m=n_edges*n_features, directed=False)
         adj_train = adj_test = np.array(graph_train.get_adjacency().data)
-    if model=='SBM':
+    elif model=="BA":
+        # Generate a scale-free graph with the Barabasi-Albert model.
+        graph_train  = graph_test = ig.Graph.Barabasi(n_features, n_edges, directed=False)
+        adj_train = adj_test = np.array(graph_train.get_adjacency().data)
+    elif model=='SBM':
+        # Generate a random graph with the stochastic block matrix model.
         n = [n_features // n_communities] * n_communities
         p = np.full((n_communities, n_communities), probs[1])
         adj_train = sbm(n=n, p=p)
         adj_test  = sbm(n=n, p=p)
         graph_train = ig.Graph.Adjacency(adj_train.tolist())
         graph_test  = ig.Graph.Adjacency(adj_test.tolist())
+    else:
+        raise("Unrecognized random graph generation model. Please use ER, BA or SBM.")
     X_train = []
     y_train = []
     X_test  = []
     y_test  = []
-    for c in range(n_classes):
-        # Draw the features which define this class
-        char_features = np.random.choice(n_features,size=n_char_features,replace=False)
-        for i in range(n_obs_train):
-            # Start from a random vector
-            features = np.abs(np.random.normal(0, 1, n_features))
-            # TODO: force features to be positive or accept negative features ?
-            # Increase the value for the characteristic features
-            features[char_features] += np.abs(np.random.normal(signal[0], 1, n_char_features))
-            features = features / np.linalg.norm(features)
-            # Diffuse values through the graph
-            # TODO: add different edge labels (positive or negative regulation)
-            # TODO: maybe also give a weight to each edge
-            for i in range(n_iter):
-                features_next = np.copy(features)
-                for e in graph_train.es:
-                    features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[0]
-                    features_next[e.source]+= (features[e.target] - features[e.source]) * diff_coef[0]
-                features = features_next
-            if noise[0] > 0:
-                features += np.random.normal(0, noise[0], n_features)
-            X_train.append(features)
-            y_train.append(c)
 
-        for i in range(n_obs_test):
-            # Start from a random vector
-            features = np.abs(np.random.normal(0, 1, n_features))
-            # TODO: force features to be positive or accept negative features ?
-            # Increase the value for the characteristic features
-            features[char_features] += np.abs(np.random.normal(signal[1], 1, n_char_features))
-            features = features / np.linalg.norm(features)
-            # Diffuse values through the graph
-            # TODO: add different edge labels (positive or negative regulation)
-            # TODO: maybe also give a weight to each edge
-            for i in range(n_iter):
+    if syn_method=="diffusion":
+        for c in range(n_classes):
+            # Draw the features which define this class
+            char_features = np.random.choice(n_features,size=n_char_features,replace=False)
+            for i in range(n_obs_train):
+                # Start from a random vector
+                features = np.abs(np.random.normal(0, 1, n_features))
+                # TODO: force features to be positive or accept negative features ?
+                # Increase the value for the characteristic features
+                features[char_features] += np.abs(np.random.normal(signal[0], 1, n_char_features))
+                features = features / np.linalg.norm(features)
+                # Diffuse values through the graph
+                # TODO: add different edge labels (positive or negative regulation)
+                # TODO: maybe also give a weight to each edge
+                for i in range(n_iter):
+                    features_next = np.copy(features)
+                    for e in graph_train.es:
+                        features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[0]
+                        features_next[e.source]+= (features[e.target] - features[e.source]) * diff_coef[0]
+                    features = features_next
+                if noise[0] > 0:
+                    features += np.random.normal(0, noise[0], n_features)
+                X_train.append(features)
+                y_train.append(c)
+
+            for i in range(n_obs_test):
+                # Start from a random vector
+                features = np.abs(np.random.normal(0, 1, n_features))
+                # TODO: force features to be positive or accept negative features ?
+                # Increase the value for the characteristic features
+                features[char_features] += np.abs(np.random.normal(signal[1], 1, n_char_features))
+                features = features / np.linalg.norm(features)
+                # Diffuse values through the graph
+                # TODO: add different edge labels (positive or negative regulation)
+                # TODO: maybe also give a weight to each edge
+                for i in range(n_iter):
+                    features_next = np.copy(features)
+                    for e in graph_test.es:
+                        features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[1]
+                        features_next[e.source]+= (features[e.target] - features[e.source]) * diff_coef[1]
+                    features = features_next
+                if noise[1] > 0:
+                    features += np.random.normal(0, noise[1], n_features)
+                X_test.append(features)
+                y_test.append(c)
+    elif syn_method=="oppneighbors":
+        for c in range(n_classes):
+            # Draw the features which define this class
+            char_features = np.random.choice(n_features,size=n_char_features,replace=False)
+            for i in range(n_obs_train):
+                # Start from a random vector
+                features = np.random.normal(0, 1, n_features)
+                #features = features / np.linalg.norm(features)
+                
                 features_next = np.copy(features)
-                for e in graph_test.es:
-                    features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[1]
-                    features_next[e.source]+= (features[e.target] - features[e.source]) * diff_coef[1]
+                for f in char_features:
+                    s=0
+                    for neighbor in graph_train.neighbors(f):
+                        s+=features[neighbor]
+                    # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
+                    features_next[f] -= np.sign(s) * signal[0]
+
                 features = features_next
-            if noise[1] > 0:
-                features += np.random.normal(0, noise[1], n_features)
-            X_test.append(features)
-            y_test.append(c)
+                if noise[0] > 0:
+                    features += np.random.normal(0, noise[0], n_features)
+                X_train.append(features)
+                y_train.append(c)
+
+            for i in range(n_obs_test):
+                # Start from a random vector
+                features = np.random.normal(0, 1, n_features)
+                #features = features / np.linalg.norm(features)
+                
+                features_next = np.copy(features)
+                for f in char_features:
+                    s=0
+                    for neighbor in graph_train.neighbors(f):
+                        s+=features[neighbor]
+                    # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
+                    features_next[f] -= np.sign(s) * signal[1]
+
+                features = features_next
+                if noise[1] > 0:
+                    features += np.random.normal(0, noise[1], n_features)
+                X_test.append(features)
+                y_test.append(c)
+    else:
+        raise("Unrecognized synthetic dataset generation method.")
     train_idx = np.random.permutation(len(y_train)) - 1
     X_train   = np.array(X_train)[train_idx, :]
     y_train   = np.array(y_train)[train_idx]
@@ -185,6 +235,7 @@ def gen_syn_data(
 
     return X_train, y_train, adj_train, \
         X_test, y_test, adj_test
+
 
 def glasso(data, alphas=5, n_jobs=None):
     cov = GraphicalLassoCV(alphas=alphas, n_jobs=n_jobs).fit(data)
