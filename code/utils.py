@@ -331,7 +331,7 @@ def compute_metrics(y_true, y_pred):
 
 
 
-def get_dataloader(graph, X, y, undirected=True):
+def get_dataloader(graph, X, y, batch_size=1,undirected=True):
     """
     Converts an igraph graph and a dataset (X,y) to a dataloader of pytorch geometrics graphs.
     In the output, all of the graphs will have the same connectivity (given by the input graph),
@@ -362,5 +362,5 @@ def get_dataloader(graph, X, y, undirected=True):
         # data.num_nodes = X.shape[1]
         list_graphs.append(data.coalesce())
 
-    dataloader = geo_dt.DataLoader(list_graphs, batch_size=1, shuffle=True)
+    dataloader = geo_dt.DataLoader(list_graphs, batch_size=batch_size, shuffle=True)
     return dataloader

@@ -3,10 +3,12 @@ from utils import *
 
 class Dataset():
     def __init__(self, 
-        tag, 
+        tag,
+        batch_size=1,
         input_dir= 'data_input', 
         output_dir='data_input',
         random_seed=1996):
+        self.batch_size=batch_size
         self.input_dir  = os.path.join(input_dir, tag)
         self.output_dir = os.path.join(output_dir, tag)
         self.X_train  = None
@@ -50,51 +52,51 @@ class Dataset():
 
     def _dataloader(self, dataset = 'train'):
         if dataset == 'train':
-            return get_dataloader(self.A_train, self.X_train, self.y_train)
+            return get_dataloader(self.A_train, self.X_train, self.y_train,self.batch_size)
         else:
-            return get_dataloader(self.A_train, self.X_test, self.y_test)
+            return get_dataloader(self.A_train, self.X_test, self.y_test,self.batch_size)
 
     def save(self):
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
         file = open("X_train.txt", "w")
-        for row in X_train:
+        for row in self.X_train:
             np.savetxt(file, row)
         file.close()
 
         file = open("y_train.txt", "w")
-        for row in y_train:
+        for row in self.y_train:
             np.savetxt(file, row)
         file.close()
 
         file = open("adj_train.txt", "w")
-        for row in A_train:
+        for row in self.A_train:
             np.savetxt(file, row)
         file.close()
 
         file = open("adjh_train.txt", "w")
-        for row in Ah_train:
+        for row in self.Ah_train:
             np.savetxt(file, row)
         file.close()
 
         file = open("X_test.txt", "w")
-        for row in X_test:
+        for row in self.X_test:
             np.savetxt(file, row)
         file.close()
 
         file = open("y_test.txt", "w")
-        for row in y_test:
+        for row in self.y_test:
             np.savetxt(file, row)
         file.close()
 
         file = open("adj_test.txt", "w")
-        for row in A_test:
+        for row in self.A_test:
             np.savetxt(file, row)
         file.close()
 
         file = open("adjh_test.txt", "w")
-        for row in Ah_test:
+        for row in self.Ah_test:
             np.savetxt(file, row)
         file.close()
         
