@@ -34,6 +34,8 @@ parser.add_argument('--n_hidden_GNN',type=int,default=0,help='Number of hidden f
 parser.add_argument('--n_hidden_FC',type=int,default=0,help='Number of features in the fully connected hidden layer. If 0, do not use a hidden layer.')
 parser.add_argument('--K',type=int,default=4,help='Parameter for Cheb GNN.')
 
+parser.add_argument('--dropout',type=float,help='Dropout rate. If it is not given, it will be chosen by cross-validation.')
+
 
 
 args = parser.parse_args()
@@ -72,10 +74,13 @@ dataset.create_graph(alphas=[0.001, 0.002])
 train_dataloader = dataset._dataloader('train',use_true_graph=True,batch_size=16)
 test_dataloader  = dataset._dataloader('test',use_true_graph=True,batch_size=16)
 
-#dropout_rate = 0.1 
-dropout_rate = select_hyperparameters_CV(dataset=dataset,n_features=args.n_features,n_classes=args.n_classes,n_hidden_GNN=n_hidden_GNN,n_hidden_FC=n_hidden_FC,\
+if args.dropout is None:
+  dropout_rate = select_hyperparameters_CV(dataset=dataset,n_features=args.n_features,n_classes=args.n_classes,n_hidden_GNN=n_hidden_GNN,n_hidden_FC=n_hidden_FC,\
         K=args.K,classifier=args.classifier,lr=0.001,momentum=0.9,epochs=30,device=device,batch_size=16)
-print("Selected dropout rate: " + str(dropout_rate))
+  print("Selected dropout rate: " + str(dropout_rate))
+else:
+  dropout_rate = args.dropout
+
 
 
 clf = Classifier(n_features=args.n_features,

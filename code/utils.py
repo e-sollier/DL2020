@@ -224,6 +224,56 @@ def gen_syn_data(
                     features += np.random.normal(0, noise[1], n_features)
                 X_test.append(features)
                 y_test.append(c)
+
+    elif syn_method=="activation":
+        for c in range(n_classes):
+            # Draw the features which define this class
+            char_features = np.random.choice(n_features,size=n_char_features,replace=False)
+            for i in range(n_obs_train):
+                # Start from a random vector
+                features = np.random.normal(0, 1, n_features)
+                #features = features / np.linalg.norm(features)
+                
+                features_next = np.copy(features)
+                for f in char_features:
+                    s=0
+                    degree=0
+                    for neighbor in graph_train.neighbors(f):
+                        s+=features[neighbor]
+                        degree+=1
+                    degree = max(degree,1)
+                    # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
+                    #features_next[f] += np.sign(s) * signal[0]
+                    features_next[f] = np.random.normal(s/degree * signal[0],1) # or += ?
+
+                features = features_next
+                if noise[0] > 0:
+                    features += np.random.normal(0, noise[0], n_features)
+                X_train.append(features)
+                y_train.append(c)
+
+            for i in range(n_obs_test):
+                # Start from a random vector
+                features = np.random.normal(0, 1, n_features)
+                #features = features / np.linalg.norm(features)
+                
+                features_next = np.copy(features)
+                for f in char_features:
+                    s=0
+                    degree=0
+                    for neighbor in graph_train.neighbors(f):
+                        s+=features[neighbor]
+                        degree+=1
+                    degree = max(degree,1)
+                    # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
+                    #features_next[f] -= np.sign(s) * signal[1]
+                    features_next[f] = np.random.normal(s/degree * signal[1],1) # or += ?
+
+                features = features_next
+                if noise[1] > 0:
+                    features += np.random.normal(0, noise[1], n_features)
+                X_test.append(features)
+                y_test.append(c)
     else:
         raise("Unrecognized synthetic dataset generation method.")
     train_idx = np.random.permutation(len(y_train)) - 1
