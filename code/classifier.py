@@ -16,7 +16,7 @@ class Classifier():
         dropout_GNN=0,
         dropout_FC=0, 
         classifier='MLP', 
-        lr=.01, 
+        lr=.001, 
         momentum=.9,
         log_dir=None,
         device='cpu'):

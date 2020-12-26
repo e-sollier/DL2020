@@ -1,4 +1,5 @@
 import os
+from sklearn.model_selection import KFold
 from utils import *
 
 class Dataset():
@@ -52,12 +53,29 @@ class Dataset():
         if use_true_graph:
             A = self.A_train
         else:
-            A= self.Ah_train
+            A = self.Ah_train
 
         if dataset == 'train':
             return get_dataloader(A, self.X_train, self.y_train)
         else:
             return get_dataloader(A, self.X_test, self.y_test)
+
+    def CV_dataloaders(self,batch_size=1,use_true_graph=True,n_splits=6):
+        """
+        Returns a generator of pairs (dataloader_train, dataloader_val) used for cross-validations.
+        """
+        if use_true_graph:
+            A = self.A_train
+        else:
+            A = self.Ah_train
+        kf = KFold(n_splits=n_splits)
+
+        for train_index, test_index in kf.split(self.X_train):
+            X_train, X_val = self.X_train[train_index], self.X_train[test_index]
+            y_train, y_val = self.y_train[train_index], self.y_train[test_index]
+            train_dataloader = get_dataloader(A,X_train,y_train)
+            val_dataloader = get_dataloader(A,X_val,y_val)
+            yield (train_dataloader,val_dataloader)
 
     def save(self):
         if not os.path.exists(self.output_dir):
