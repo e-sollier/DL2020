@@ -38,10 +38,10 @@ class Classifier():
         if classifier == 'GENConv':
             self.net = GENConvNet(n_features=n_features, n_classes=n_classes,\
                 n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
-                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN)
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
-        self.scheduler = lr_scheduler.CyclicLR(self.optimizer, base_lr=lr, max_lr=0.01, step_size_up=5, mode="triangular2")
+        self.scheduler = lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=1, eta_min=0.0005, last_epoch=-1)
         self.logging   = log_dir is not None
         self.device    = device
         if self.logging:
@@ -67,6 +67,7 @@ class Classifier():
                 loss.backward()
                 self.optimizer.step()
                 total_loss += loss.item() * batch.num_graphs
+                self.scheduler.step()
             total_loss /= len(data_loader.dataset)
             if verbose and epoch%(epochs//10)==0:
                 print('[%d] loss: %.3f' % (epoch + 1,total_loss))
@@ -79,7 +80,7 @@ class Classifier():
                 if test_dataloader is not None:
                     accuracy_test = self.eval(test_dataloader,verbose=False)[0]
                     self.writer.add_scalar("Accuracy on Test Dataset",accuracy_test,epoch)
-            self.scheduler.step()
+            
                 
 
 
