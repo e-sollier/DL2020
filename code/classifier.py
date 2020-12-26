@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from utils import compute_metrics
+from torch.optim import lr_scheduler 
 
 class Classifier():
     def __init__(self,
@@ -17,7 +18,8 @@ class Classifier():
         classifier='MLP', 
         lr=.01, 
         momentum=.9,
-        log_dir=None):
+        log_dir=None,
+        device='cpu'):
         if classifier == 'MLP': 
             self.net = NN(n_features=n_features, n_classes=n_classes,\
                 n_hidden_FC=n_hidden_FC, dropout_FC=dropout_FC)
@@ -29,13 +31,19 @@ class Classifier():
             self.net = ChebNet(n_features=n_features, n_classes=n_classes,\
                 n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
                 dropout_FC=dropout_FC, dropout_GNN=dropout_GNN, K=K)
-        if classifier == 'ConvNet':
-            self.net = NNConvNet(n_features=n_features, n_classes=n_classes,\
+        if classifier == 'GATConv':
+            self.net = GATConvNet(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN)
+        if classifier == 'GENConv':
+            self.net = GENConvNet(n_features=n_features, n_classes=n_classes,\
                 n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
                 dropout_FC=dropout_FC, dropout_GNN=dropout_GNN)
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
-        self.logging= log_dir is not None
+        self.scheduler = lr_scheduler.CyclicLR(self.optimizer, base_lr=lr, max_lr=0.01, step_size_up=5, mode="triangular2")
+        self.logging   = log_dir is not None
+        self.device    = device
         if self.logging:
             self.writer = SummaryWriter(log_dir=log_dir,flush_secs=1)
  
@@ -46,14 +54,16 @@ class Classifier():
 
         
         for epoch in range(epochs):
+            
             self.net.train()
+            self.net.to(self.device)
             total_loss = 0
             
             for batch in data_loader:
+                x, edge_index, label = batch.x.to(self.device), batch.edge_index.to(self.device), batch.y.to(self.device) 
                 self.optimizer.zero_grad()
-                pred = self.net(batch.x,batch.edge_index)
-                label = batch.y
-                loss = self.criterion(pred,label)
+                pred  = self.net(x, edge_index)
+                loss  = self.criterion(pred,label)
                 loss.backward()
                 self.optimizer.step()
                 total_loss += loss.item() * batch.num_graphs
@@ -69,6 +79,7 @@ class Classifier():
                 if test_dataloader is not None:
                     accuracy_test = self.eval(test_dataloader,verbose=False)[0]
                     self.writer.add_scalar("Accuracy on Test Dataset",accuracy_test,epoch)
+            self.scheduler.step()
                 
 
 
@@ -76,16 +87,19 @@ class Classifier():
 
     def eval(self,data_loader,verbose=False):
         self.net.eval()
+        # self.net.to('cpu')
+        # self.net.to(self.device)
         correct = 0
         total = 0
         y_true = []
         y_pred = []
         with torch.no_grad():
-            for data in data_loader:
-                X, graphs, labels = data.x, data.edge_index, data.y
-                y_true.extend(list(labels))
-                outputs = self.net(data.x,data.edge_index)
+            for batch in data_loader:
+                x, edge_index, label = batch.x.to(self.device), batch.edge_index.to(self.device), batch.y.to('cpu')
+                y_true.extend(list(label))
+                outputs = self.net(x, edge_index)
                 _, predicted = torch.max(outputs.data, 1)
+                predicted = predicted.to('cpu')
                 y_pred.extend(list(predicted))
         accuracy, conf_mat, precision, recall, f1_score = compute_metrics(y_true, y_pred)
         if verbose:

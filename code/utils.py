@@ -239,7 +239,7 @@ def gen_syn_data(
 
 def glasso(data, alphas=5, n_jobs=None):
     cov = GraphicalLassoCV(alphas=alphas, n_jobs=n_jobs).fit(data)
-    print(cov)
+    # print(cov)
     precision_matrix = cov.get_precision()
     adjacency_matrix = precision_matrix.astype(bool).astype(int)
     return adjacency_matrix
@@ -358,8 +358,8 @@ def draw_graph(adjacency_matrix, node_color=None):
     pos = community_layout(g, partition)
     if node_color == None:
       node_color = list(partition.values())
-    print(g.number_of_nodes())
-    print(len(node_color))
+    # print(g.number_of_nodes())
+    # print(len(node_color))
     nx.draw(g, pos, node_color=node_color, node_size=10); 
     return list(partition.values())
 
@@ -403,7 +403,7 @@ def get_dataloader(graph, X, y, batch_size=1,undirected=True):
 
     list_graphs = []
     y = y.tolist()
-    print(y)
+    # print(y)
     for i in range(n_obs):
         y_tensor = torch.tensor(y[i])
         X_tensor = torch.tensor(X[i,:]).view(X.shape[1], 1).float()

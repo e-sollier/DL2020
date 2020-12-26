@@ -35,7 +35,7 @@ class NN(nn.Module):
             if self.n_layers_GNN==0:
                 self.layers_FC.append(nn.Linear(n_features, n_hidden_FC[0]))
             else:
-                self.layers_FC.append(nn.Linear(n_hidden_GNN[-1], n_hidden_FC[0]))
+                self.layers_FC.append(nn.Linear(n_features*n_hidden_GNN[-1], n_hidden_FC[0]))
             if self.n_layers_FC > 1:
                 for i in range(self.n_layers_FC-1):
                     self.layers_FC.append(nn.Linear(n_hidden_FC[i], n_hidden_FC[(i+1)]))
@@ -98,7 +98,7 @@ class ChebNet(NN):
         self.layers_GNN.append(pyg_nn.ChebConv(1, n_hidden_GNN[0], K))
         if self.n_layers_GNN > 1:
             for i in range(self.n_layers_GNN-1):
-                self.layers_GNN.append(pyg_nn.ChebConv(n_hidden_GNN[i], n_hidden_GNN[(i+1), K]))
+                self.layers_GNN.append(pyg_nn.ChebConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)], K))
 
 
 class NNConvNet(NN):
@@ -117,3 +117,37 @@ class NNConvNet(NN):
         if self.n_layers_GNN > 1:
             for i in range(self.n_layers_GNN-1):
                 self.layers_GNN.append(pyg_nn.NNConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
+
+class GATConvNet(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(NNConvNet, self).__init__(\
+            n_features, n_classes, n_hidden_GNN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.GATConv(1, n_hidden_GNN[0]))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-1):
+                self.layers_GNN.append(pyg_nn.GATConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
+
+class GENConvNet(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(NNConvNet, self).__init__(\
+            n_features, n_classes, n_hidden_GNN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.GENConv(1, n_hidden_GNN[0]))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-1):
+                self.layers_GNN.append(pyg_nn.GENConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
