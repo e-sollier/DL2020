@@ -39,6 +39,10 @@ class Classifier():
             self.net = GENConvNet(n_features=n_features, n_classes=n_classes,\
                 n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
                 dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
+        if classifier =="GINConv":
+            self.net = GINConv(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
         self.scheduler = lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=1, eta_min=0.0005, last_epoch=-1)

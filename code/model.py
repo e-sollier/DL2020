@@ -151,3 +151,23 @@ class GENConvNet(NN):
         if self.n_layers_GNN > 1:
             for i in range(self.n_layers_GNN-1):
                 self.layers_GNN.append(pyg_nn.GENConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
+
+
+class GINConv(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(GINConv, self).__init__(\
+            n_features, n_classes, n_hidden_GNN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.GINConv(nn.Sequential(nn.Linear(1, n_hidden_GNN[0]),
+                                  nn.ReLU(), nn.Linear(n_hidden_GNN[0],n_hidden_GNN[0]))))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-1):
+                self.layers_GNN.append(pyg_nn.GINConv(nn.Sequential(nn.Linear(n_hidden_GNN[i], n_hidden_GNN[(i+1)]),
+                                  nn.ReLU(), nn.Linear(n_hidden_GNN[(i+1)],n_hidden_GNN[(i+1)]))))
