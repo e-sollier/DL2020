@@ -244,7 +244,7 @@ def gen_syn_data(
                     degree = max(degree,1)
                     # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
                     #features_next[f] += np.sign(s) * signal[0]
-                    features_next[f] = np.random.normal(s/degree * signal[0],1) # or += ?
+                    features_next[f] = np.random.normal(s/degree * signal[0],0.3) # or += ?
 
                 features = features_next
                 if noise[0] > 0:
@@ -267,7 +267,7 @@ def gen_syn_data(
                     degree = max(degree,1)
                     # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
                     #features_next[f] -= np.sign(s) * signal[1]
-                    features_next[f] = np.random.normal(s/degree * signal[1],1) # or += ?
+                    features_next[f] = np.random.normal(s/degree * signal[1],0.3) # or += ?
 
                 features = features_next
                 if noise[1] > 0:
