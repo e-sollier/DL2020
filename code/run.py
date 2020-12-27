@@ -33,7 +33,9 @@ parser.add_argument('--classifier',type=str,default="MLP",help='Type of classifi
 parser.add_argument('--n_hidden_GNN',type=int,default=0,help='Number of hidden features for the GNN. If 0, do not use a GNN.')
 parser.add_argument('--n_hidden_FC',type=int,default=0,help='Number of features in the fully connected hidden layer. If 0, do not use a hidden layer.')
 parser.add_argument('--K',type=int,default=4,help='Parameter for Cheb GNN.')
+parser.add_argument('--epochs',type=int,default=30,help='Number of training epochs.')
 
+parser.add_argument('--infer_graph',type=str,default="False",help="Whether to infer the graph from the data (True) or directly use the true graph.")
 parser.add_argument('--dropout',type=float,help='Dropout rate. If it is not given, it will be chosen by cross-validation.')
 
 
@@ -41,6 +43,7 @@ parser.add_argument('--dropout',type=float,help='Dropout rate. If it is not give
 args = parser.parse_args()
 n_hidden_GNN = [] if args.n_hidden_GNN==0 else [args.n_hidden_GNN]
 n_hidden_FC = [] if args.n_hidden_FC==0 else [args.n_hidden_FC]
+infer_graph = args.infer_graph=="True"
 
 if torch.cuda.is_available():  
   dev = "cuda:0" 
@@ -51,7 +54,7 @@ device = torch.device(dev)
 
 dataset = Dataset(tag='EXP1')
 
-if args.i in ["diffusion","oppneighbors"]:
+if args.i in ["diffusion","oppneighbors","activation"]:
     dataset.create_syn(n_classes = args.n_classes, 
                     n_obs_train = args.n_obs_train, 
                     n_obs_test= args.n_obs_test, 
@@ -76,7 +79,7 @@ test_dataloader  = dataset._dataloader('test',use_true_graph=True,batch_size=16)
 
 if args.dropout is None:
   dropout_rate = select_hyperparameters_CV(dataset=dataset,n_features=args.n_features,n_classes=args.n_classes,n_hidden_GNN=n_hidden_GNN,n_hidden_FC=n_hidden_FC,\
-        K=args.K,classifier=args.classifier,lr=0.001,momentum=0.9,epochs=30,device=device,batch_size=16)
+        K=args.K,classifier=args.classifier,lr=0.001,momentum=0.9,epochs=args.epochs,device=device,batch_size=16)
   print("Selected dropout rate: " + str(dropout_rate))
 else:
   dropout_rate = args.dropout
@@ -95,11 +98,17 @@ clf = Classifier(n_features=args.n_features,
         momentum=.9,
         log_dir=None)
 
-clf.fit(train_dataloader, epochs = 30, test_dataloader=test_dataloader,verbose=True)
+clf.fit(train_dataloader, epochs = args.epochs, test_dataloader=test_dataloader,verbose=True)
 
 results = clf.eval(test_dataloader, verbose=False)
 
-output = {"accuracy":results[0],"precision":results[2],"recall":results[3],"f1":results[4]}
+output = {"accuracy":results[0],"precision":results[2],"recall":results[3],"f1":results[4], "n_classes":args.n_classes,"n_features":args.n_features,\
+      "n_char_features":args.n_char_features,"n_obs_train":args.n_obs_train,"n_obs_test":args.n_obs_test,\
+      "signal_train":args.signal_train,"signal_test":args.signal_test,"diff_train":args.diff_train,"diff_test":args.diff_test,"noise_train":args.noise_train,\
+        "noise_test":args.noise_test,\
+        "classifier":args.classifier,"n_hidden_GNN":args.n_hidden_GNN,"n_hidden_FC":args.n_hidden_FC}
+
+
 
 filename = "_".join([args.i,str(args.n_features),str(args.n_classes),str(args.n_char_features),str(args.n_obs_train),str(args.n_obs_test),args.graph_model,\
     str(args.signal_train),str(args.signal_test),str(args.diff_train),str(args.diff_test),str(args.noise_train),str(args.noise_test),\
