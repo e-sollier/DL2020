@@ -152,7 +152,7 @@ def gen_syn_data(
                 # Diffuse values through the graph
                 # TODO: add different edge labels (positive or negative regulation)
                 # TODO: maybe also give a weight to each edge
-                for i in range(n_iter):
+                for it in range(n_iter):
                     features_next = np.copy(features)
                     for e in graph_train.es:
                         features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[0]
@@ -173,7 +173,7 @@ def gen_syn_data(
                 # Diffuse values through the graph
                 # TODO: add different edge labels (positive or negative regulation)
                 # TODO: maybe also give a weight to each edge
-                for i in range(n_iter):
+                for it in range(n_iter):
                     features_next = np.copy(features)
                     for e in graph_test.es:
                         features_next[e.target]+= (features[e.source] - features[e.target]) * diff_coef[1]
@@ -244,7 +244,7 @@ def gen_syn_data(
                     degree = max(degree,1)
                     # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
                     #features_next[f] += np.sign(s) * signal[0]
-                    features_next[f] = np.random.normal(s/degree * signal[0],0.3) # or += ?
+                    features_next[f] = np.random.normal(s/degree * signal[0],0.2) # or += ?
 
                 features = features_next
                 if noise[0] > 0:
@@ -267,9 +267,50 @@ def gen_syn_data(
                     degree = max(degree,1)
                     # if the average value of the neighbor is >0, substract signal. Otherwise, add signal
                     #features_next[f] -= np.sign(s) * signal[1]
-                    features_next[f] = np.random.normal(s/degree * signal[1],0.3) # or += ?
+                    features_next[f] = np.random.normal(s/degree * signal[1],0.2) # or += ?
 
                 features = features_next
+                if noise[1] > 0:
+                    features += np.random.normal(0, noise[1], n_features)
+                X_test.append(features)
+                y_test.append(c)
+    elif syn_method=="activation2":
+        for c in range(n_classes):
+            # Draw the features which define this class
+            char_features = np.random.choice(n_features,size=n_char_features,replace=False)
+            for i in range(n_obs_train):
+                # Start from a random vector
+                features = np.random.normal(0, 1, n_features)
+                #features = features / np.linalg.norm(features)
+                
+                for it in range(n_iter):
+                    features_next = np.copy(features)
+                    for f in char_features:
+                        s=0
+                        for neighbor in graph_train.neighbors(f):
+                            s+=features[neighbor]
+                        features_next[f] = np.sign(s)* np.abs(features[f])
+                    features = features_next
+
+                if noise[0] > 0:
+                    features += np.random.normal(0, noise[0], n_features)
+                X_train.append(features)
+                y_train.append(c)
+
+            for i in range(n_obs_test):
+                # Start from a random vector
+                features = np.random.normal(0, 1, n_features)
+                #features = features / np.linalg.norm(features)
+                
+                for it in range(n_iter):
+                    features_next = np.copy(features)
+                    for f in char_features:
+                        s=0
+                        for neighbor in graph_train.neighbors(f):
+                            s+=features[neighbor]
+                        features_next[f] = np.sign(s)* np.abs(features[f])
+                    features = features_next
+
                 if noise[1] > 0:
                     features += np.random.normal(0, noise[1], n_features)
                 X_test.append(features)
@@ -474,7 +515,7 @@ def get_dataloader(graph, X, y, batch_size=1,undirected=True):
         if undirected:
             sources.append(edge[0])
             targets.append(edge[1])
-    edge_index  = torch.tensor([sources,targets])
+    edge_index  = torch.tensor([sources,targets],dtype=torch.long)
 
     list_graphs = []
     y = y.tolist()
