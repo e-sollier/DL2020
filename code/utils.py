@@ -1,18 +1,18 @@
-import numpy as np
-import igraph as ig 
-import csv
-import pandas as pd
 import os
-from graspologic.simulations import sbm
-from sklearn.covariance import GraphicalLassoCV
+import csv
+import numpy as np
+import pandas as pd
+#from graspologic.simulations import sbm
+from sklearn.metrics import *
+from sklearn.covariance import GraphicalLassoCV, graphical_lasso
+from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
+import igraph as ig 
 import networkx as nx
 from community import community_louvain
 import umap
 from plotnine import *
-from sklearn.metrics import *
 import torch
-# from torch_geometric.data import Data, DataLoader
 import torch_geometric.data as geo_dt
 
 
@@ -292,6 +292,31 @@ def glasso(data, alphas=5, n_jobs=None):
     # print(cov)
     precision_matrix = cov.get_precision()
     adjacency_matrix = precision_matrix.astype(bool).astype(int)
+    return adjacency_matrix
+
+def glasso_R(data, alphas):
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
+    _ , n_samples = data.shape
+    cov_emp = np.dot(data.T, data) / n_samples
+    covariance, precision_matrix = graphical_lasso(emp_cov=cov_emp, alpha=alphas, mode='lars')
+    adjacency_matrix = precision_matrix.astype(bool).astype(int)
+    adjacency_matrix[np.diag_indices_from(adjacency_matrix)] = 0
+    return adjacency_matrix
+
+def lw(data, alphas):
+    alpha=alphas
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
+    cov = LedoitWolf().fit(data)
+    precision_matrix = cov.get_precision()
+    n_features, _ = precision_matrix.shape
+    mask1 = np.abs(precision_matrix) > alpha
+    mask0 = np.abs(precision_matrix) <= alpha
+    adjacency_matrix = np.zeros((n_features,n_features))
+    adjacency_matrix[mask1] = 1
+    adjacency_matrix[mask0] = 0
+    adjacency_matrix[np.diag_indices_from(adjacency_matrix)] = 0
     return adjacency_matrix
 
 # def compare_graphs(A, Ah):

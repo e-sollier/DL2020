@@ -1,10 +1,12 @@
-from model import *
 import torch.optim as optim
+from torch.optim import lr_scheduler 
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
+
 from utils import compute_metrics
-from torch.optim import lr_scheduler 
+from model import *
+
 
 class Classifier():
     def __init__(self,

@@ -30,11 +30,17 @@ class Dataset():
         self.X_test  = load_features(self.input_dir, 'test', **kwargs)
         self.y_test  = load_classes(self.input_dir, 'test', **kwargs)
 
-    def create_graph(self, method='glasso', alphas=5, n_jobs=None):
+    def create_graph(self, method='glasso_R', alphas=5, n_jobs=None):
         #TODO: add **kwargs
         if method == 'glasso':
             self.Ah_train = glasso(self.X_train, alphas, n_jobs)
             self.Ah_test  = glasso(self.X_test, alphas, n_jobs)
+        elif method=="glasso_R":
+            self.Ah_train = glasso_R(self.X_train, alphas)
+            self.Ah_test  = glasso_R(self.X_test, alphas)
+        elif method == "lw":
+            self.Ah_train = lw(self.X_train, alphas)
+            self.Ah_test  = lw(self.X_test, alphas)
 
     def score_graphs(self):
         # TODO: add error trap
@@ -60,13 +66,14 @@ class Dataset():
         else:
             return get_dataloader(A, self.X_test, self.y_test)
 
-    def CV_dataloaders(self,batch_size=1,use_true_graph=True,n_splits=6):
+    def CV_dataloaders(self,batch_size=1,use_true_graph=True,n_splits=6,graph_method="glasso_R",alpha=0.5):
         """
         Returns a generator of pairs (dataloader_train, dataloader_val) used for cross-validations.
         """
         if use_true_graph:
             A = self.A_train
         else:
+            self.create_graph(method=graph_method,alphas=alpha)
             A = self.Ah_train
         kf = KFold(n_splits=n_splits)
 
