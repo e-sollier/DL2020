@@ -16,7 +16,7 @@ parser.add_argument('--n_classes',type=int,default=5,help='Number of classes')
 parser.add_argument('--n_features',type=int,default=50,help='Number of features (in case of synthetic data')
 parser.add_argument('--n_char_features',type=int,default=6,help='Number of characteristic features for each class')
 parser.add_argument('--n_obs_train',type=int,default=500,help='Number of observations for training (per class)')
-parser.add_argument('--n_obs_test',type=int,default=10000,help='Number of observations for testing (per class)')
+parser.add_argument('--n_obs_test',type=int,default=5000,help='Number of observations for testing (per class)')
 parser.add_argument('--graph_model',type=str,default='ER',help='Graph generation model')
 parser.add_argument('--signal_train',type=float,default=2,help='Signal for training data')
 parser.add_argument('--signal_test',type=float,default=2,help='Signal for test data')
@@ -85,7 +85,7 @@ if args.dropout is None or args.alpha is None:
   else:
     dropout_rate_list = [args.dropout]
   if args.alpha is None and (not use_true_graph):
-    alpha_list = [0,0.001,0.01,0.1,0.5,1,2,3,5]
+    alpha_list = [0.5,1,2,3]
   elif args.alpha is None:
     alpha = [1]
   else:
@@ -124,13 +124,13 @@ output = {"accuracy":results[0],"precision":results[2],"recall":results[3],"f1":
       "n_char_features":args.n_char_features,"n_obs_train":args.n_obs_train,"n_obs_test":args.n_obs_test,\
       "signal_train":args.signal_train,"signal_test":args.signal_test,"diff_train":args.diff_train,"diff_test":args.diff_test,"noise_train":args.noise_train,\
         "noise_test":args.noise_test,\
-        "classifier":args.classifier,"n_hidden_GNN":args.n_hidden_GNN,"n_hidden_FC":args.n_hidden_FC,"seed":args.seed}
+        "classifier":args.classifier,"n_hidden_GNN":args.n_hidden_GNN,"n_hidden_FC":args.n_hidden_FC,"seed":args.seed,"alpha":str(args.alpha)}
 
 
 
 filename = "_".join([args.i,str(args.n_features),str(args.n_classes),str(args.n_char_features),str(args.n_obs_train),str(args.n_obs_test),args.graph_model,\
     str(args.signal_train),str(args.signal_test),str(args.diff_train),str(args.diff_test),str(args.noise_train),str(args.noise_test),\
-      args.classifier,str(args.n_hidden_GNN),str(args.n_hidden_FC),str(args.seed)]) + ".json"
+      args.classifier,str(args.n_hidden_GNN),str(args.n_hidden_FC),str(args.seed),str(args.alpha)]) + ".json"
 if not os.path.exists(args.o):
     os.makedirs(args.o)
 with open(os.path.join(args.o,filename), 'w') as outfile:
