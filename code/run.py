@@ -60,7 +60,7 @@ else:
   else:
     n_hidden_FC = [args.n_hidden_FC,args.n_hidden_FC2]
 
-use_true_graph = args.infer_graph=="False"
+use_true_graph = args.infer_graph=="False" and args.FPR==0.0 and args.FNR==0.0
 
 if torch.cuda.is_available():  
   dev = "cuda:0" 
@@ -90,7 +90,7 @@ else:
 
 
 # Select dropout_rate and alpha parameter(for glasso) using cross-validation, if they are not already provided
-if args.dropout is None or (args.alpha is None and args.FPR==0.0 and args.FNR==0.0):
+if args.dropout is None or (args.alpha is None and not use_true_graph):
   if args.dropout is None:
     dropout_rate_list = [0,0.1,0.2,0.5]
   else:
@@ -101,14 +101,22 @@ if args.dropout is None or (args.alpha is None and args.FPR==0.0 and args.FNR==0
     alpha_list = [1]
   else:
     alpha_list = [args.alpha]
-  dropout_rate,alpha = select_hyperparameters_CV(dataset=dataset,n_features=args.n_features,n_classes=args.n_classes,n_hidden_GNN=n_hidden_GNN,n_hidden_FC=n_hidden_FC,\
+  if args.dropout is None or args.infer_graph:
+    dropout_rate,alpha = select_hyperparameters_CV(dataset=dataset,n_features=args.n_features,n_classes=args.n_classes,n_hidden_GNN=n_hidden_GNN,n_hidden_FC=n_hidden_FC,\
         K=args.K,classifier=args.classifier,lr=0.001,momentum=0.9,epochs=args.epochs,device=device,batch_size=args.batch_size,dropout_rate_list=dropout_rate_list,\
          alpha_list=alpha_list,use_true_graph=use_true_graph,graph_method="glasso_R")
-  print("Selected dropout rate: " + str(dropout_rate))
-  print("Selected alpha: " + str(alpha))
+    print("Selected dropout rate: " + str(dropout_rate))
+    print("Selected alpha: " + str(alpha))
+  else:
+    dropout_rate=args.dropout
+    alpha=1
+  
 else:
   dropout_rate = args.dropout
-  alpha=args.alpha
+  if args.alpha is not None:
+    alpha=args.alpha
+  else:
+    alpha=1
 
 if args.FPR==0.0 and args.FNR==0.0: # Infer the graph with glasso
   dataset.create_graph(alphas=alpha)
