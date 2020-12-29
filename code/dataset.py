@@ -42,6 +42,36 @@ class Dataset():
             self.Ah_train = lw(self.X_train, alphas)
             self.Ah_test  = lw(self.X_test, alphas)
 
+    def create_noisy_true_graph(self,FPR,FNR):
+        nb_edges = np.sum(self.A_train) //2
+        rows, cols = np.where(self.A_train == 1)
+        edges = zip(rows.tolist(), cols.tolist())
+        edges_unique = []
+        for i,j in edges:
+            if i<j:
+                edges_unique.append((i,j))
+        # Remove edges from the true graph
+        nb_edges_removed = int(nb_edges * FNR)
+        edges_removed_ind = np.random.choice(nb_edges,nb_edges_removed,replace=False)
+        A = np.copy(self.A_train)
+        for ind in edges_removed_ind:
+            i,j = edges_unique[ind]
+            A[i,j]=0
+            A[j,i]=0
+        
+        # Add random edges
+        nb_edges_final = int(nb_edges * (1-FNR)/(1-FPR +0.000001))
+        nb_edges_added = int(nb_edges_final*FPR)
+        for k in range(nb_edges_added):
+            added_new = False
+            while not added_new:
+                i,j = np.random.choice(A.shape[0],2,replace=False)
+                if A[i,j]==0:
+                    added_new=True
+                    A[i,j]=1
+                    A[j,i]=1
+        self.Ah_train = A
+
     def score_graphs(self):
         # TODO: add error trap
         return compare_graphs(self.A_train, self.Ah_train), \
