@@ -340,7 +340,7 @@ def glasso_R(data, alphas):
     data = scaler.fit_transform(data)
     _ , n_samples = data.shape
     cov_emp = np.dot(data.T, data) / n_samples
-    covariance, precision_matrix = graphical_lasso(emp_cov=cov_emp, alpha=alphas, mode='lars')
+    covariance, precision_matrix = graphical_lasso(emp_cov=cov_emp, alpha=alphas, mode='cd')
     adjacency_matrix = precision_matrix.astype(bool).astype(int)
     adjacency_matrix[np.diag_indices_from(adjacency_matrix)] = 0
     return adjacency_matrix
@@ -531,3 +531,13 @@ def get_dataloader(graph, X, y, batch_size=1,undirected=True):
 
     dataloader = geo_dt.DataLoader(list_graphs, batch_size=batch_size, shuffle=True)
     return dataloader
+
+def sample_vec(vec, n):
+    vec_list = vec.tolist()
+    vec_list = set(vec_list)
+    to_ret = np.array([], dtype='int')
+    for val in vec_list:
+        ii = np.where(vec == val)[0] 
+        index = np.random.choice(ii, n)
+        to_ret = np.append(to_ret, index)
+    return to_ret

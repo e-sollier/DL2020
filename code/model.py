@@ -126,7 +126,7 @@ class GATConvNet(NN):
         n_hidden_FC=[], \
         dropout_GNN=0, \
         dropout_FC=0):
-        super(NNConvNet, self).__init__(\
+        super(GATConvNet, self).__init__(\
             n_features, n_classes, n_hidden_GNN,\
             n_hidden_FC, dropout_FC, dropout_GNN)
 
@@ -143,7 +143,7 @@ class GENConvNet(NN):
         n_hidden_FC=[], \
         dropout_GNN=0, \
         dropout_FC=0):
-        super(NNConvNet, self).__init__(\
+        super(GENConvNet, self).__init__(\
             n_features, n_classes, n_hidden_GNN,\
             n_hidden_FC, dropout_FC, dropout_GNN)
 

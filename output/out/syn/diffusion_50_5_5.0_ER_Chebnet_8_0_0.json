@@ -1,0 +1,1 @@
+{"accuracy": 0.8572, "precision": 0.8575240808854722, "recall": 0.8572, "f1": 0.8571241429943324, "method": "diffusion", "n_features": 50, "n_char_features": 5, "signal_test": 5.0, "model": "ER", "classifier": "Chebnet", "n_hidden_GNN": 8, "n_hidden_FC": 0, "K": 8}

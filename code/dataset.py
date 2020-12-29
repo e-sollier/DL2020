@@ -26,9 +26,19 @@ class Dataset():
 
     def load(self, **kwargs):
         self.X_train = load_features(self.input_dir, 'train', **kwargs)
-        self.y_train = load_classes(self.input_dir, 'train', **kwargs)
+        self.y_train = load_classes(self.input_dir, 'train', **kwargs)[0]
         self.X_test  = load_features(self.input_dir, 'test', **kwargs)
-        self.y_test  = load_classes(self.input_dir, 'test', **kwargs)
+        self.y_test  = load_classes(self.input_dir, 'test', **kwargs)[0]
+
+    def subsample(self, n_obs_train=None, n_obs_test=None):
+        if n_obs_train is not None:
+            train_indices = sample_vec(self.y_train, n_obs_train)
+            self.y_train = self.y_train[train_indices]
+            self.X_train = self.X_train[train_indices, :]
+        if n_obs_test is not None:
+            test_indices = sample_vec(self.y_test, n_obs_test)
+            self.y_test = self.y_test[test_indices]
+            self.X_test = self.X_test[test_indices, :]
 
     def create_graph(self, method='glasso_R', alphas=5, n_jobs=None):
         #TODO: add **kwargs

@@ -6,7 +6,7 @@ import pandas as pd
 
 
 #directory containing the outputs of run.py (json files)
-results_dir = "code/results"
+results_dir = "output/out"
 l=[]
 for f in os.listdir(results_dir):
     with open(os.path.join(results_dir,f)) as json_file:
@@ -14,7 +14,7 @@ for f in os.listdir(results_dir):
         l.append(data)
 df = pd.DataFrame(l)
 
-x_var = "n_obs_train" # name of the variable that will be plotted on the x-axis
+x_var = "n_features" # name of the variable that will be plotted on the x-axis
 y_var = "accuracy" # name of the variable that will be plotted on the y-axis
 
 type_vars = ["classifier","n_hidden_GNN","n_hidden_FC"] # names of the variables which define one classifier type

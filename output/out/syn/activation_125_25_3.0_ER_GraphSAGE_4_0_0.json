@@ -1,0 +1,1 @@
+{"accuracy": 0.4912, "precision": 0.5082546688870428, "recall": 0.4912, "f1": 0.49163567923753043, "method": "activation", "n_features": 125, "n_char_features": 25, "signal_test": 3.0, "model": "ER", "classifier": "GraphSAGE", "n_hidden_GNN": 4, "n_hidden_FC": 0, "K": 1}

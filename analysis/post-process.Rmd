@@ -1,0 +1,107 @@
+---
+title: "Final Report: Post process of the results"
+author:
+- name: Elyas Heidari
+  affiliation:
+  - Department of Biological Systems Sciences and Engineering, ETH Zurich, Switzerland 
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output:
+  workflowr::wflow_html:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    number_sections: false
+---
+<!-- 2020-09-03 09:58 -->
+<!-- elihei  [<eheidari@student.ethz.ch>]-->
+<!--/Volumes/Projects/scGCN/analysis/04-final-report-GCN-2020-09-03.rmd-->
+
+## Setup
+```{r setup, include = FALSE}
+library('BiocStyle')
+knitr::opts_chunk$set(autodep=TRUE, cache=FALSE, dev='png', cache.lazy = FALSE)
+# wflow_build(files='analysis/1-GCN_input_prep_pbmc.Rmd', view=F, verbose=T, delete_cache=F)
+```
+
+## Initialization and imports
+```{r init_import}
+# imports
+suppressMessages(source('code/rutils.R'))
+
+# initialization
+input_syn  = 'output/out/syn'
+input_real = 'output/out/real'
+data_tidy  = 'data_tidy'
+out_syn    = 'output/syn'
+out_real   = 'output/real'
+time_stamp = format(Sys.Date(), '%Y_%m_%d')
+# dirs
+## input data
+results_syn_f = dir(input_syn, pattern = "*.json")
+## write
+### plots
+hm_out    = file.path(out_syn, sprintf('heatmap_%s.pdf', time_stamp))
+```
+
+## Load input data
+```{r read, message=FALSE, warning=FALSE, paged.print=FALSE}
+results_syn = results_syn_f %>%
+       map_df(~fromJSON(file.path(input_syn, .), flatten = TRUE)) %>%
+       as.data.table
+
+```
+
+## Wrangle the resultstable
+```{r wrangle, message=FALSE, warning=FALSE, paged.print=FALSE}
+res = copy(results_syn) %>%
+    .[, dataset  := paste(method, n_features, n_char_features, signal_test, model, sep='_')] %>%
+    .[classifier != 'Chebnet', K := 0] %>%
+    .[, clf := paste(classifier, n_hidden_GNN, n_hidden_FC, K, sep='_')] %>%
+    # .[n_features == 250 & n_features == 25 & signal_test == 5] %>%
+    # .[classifier == 'Chebnet', clf := paste(clf, K, sep='_')] %>%
+    .[, .(accuracy, clf, dataset)] %>%
+    .[, accuracy := mean(accuracy), by=c('clf', 'dataset')] %>%
+    unique(by=c('clf', 'dataset')) %>%
+    dcast(dataset ~ clf, value.var = 'accuracy')
+datasets = res$dataset
+res      = res[,-1] %>% as.matrix 
+rownames(res) = datasets
+res[is.na(res)] = 0
+png('hm_test.png', width=5, height=15)
+hm <- res2hm(res)
+draw(hm)
+dev.off()
+
+```
+
+## Graphs
+```{r graphs, message=FALSE, warning=FALSE, paged.print=FALSE}
+cols_dt = limma::strsplit2(colnames(res), '_') %>%
+    as.data.table %>%
+    setnames(c('classifier', 'n_hidden_GNN', 'n_hidden_FC', 'K')) %>%
+    .[, .(classifier=factor(classifier), 
+        n_hidden_GNN=as.numeric(n_hidden_GNN), 
+        n_hidden_FC=as.numeric(n_hidden_FC), 
+        K=as.numeric(K))] %>%
+    .[, id := colnames(..res)] %>%
+    .[order(n_hidden_FC, n_hidden_GNN, K)]
+
+
+rows_dt = limma::strsplit2(rownames(res), '_') %>%
+    as.data.table %>%
+    setnames(c('method', 'n_features', 'n_char_features', 'signal_test', 'model')) %>%
+    .[, .(method=factor(method), 
+        n_features=as.numeric(n_features), 
+        n_char_features=as.numeric(n_char_features), 
+        signal_test=as.numeric(signal_test), 
+        model=as.factor(model))] %>%
+    .[, id := rownames(..res)] %>%
+    .[order(signal_test, model, n_features, n_char_features)]
+```
+
+
+## Save results
+```{r name, message=FALSE, warning=FALSE, paged.print=FALSE}
+umap_out %>% ggsave(umap_plt, filename=., width=15, height=7, device='pdf')
+conf_out %>% ggsave(conf_hm, filename=., width=11, height=5, device='pdf')
+```

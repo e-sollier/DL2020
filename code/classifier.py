@@ -47,7 +47,7 @@ class Classifier():
                 dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
-        self.scheduler = lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=1, eta_min=0.0005, last_epoch=-1)
+        # self.scheduler = lr_scheduler.OneCycleLR(self.optimizer, max_lr=0.01, steps_per_epoch=32)
         self.logging   = log_dir is not None
         self.device    = device
         if self.logging:
@@ -57,10 +57,15 @@ class Classifier():
         if self.logging:
             data= next(iter(data_loader))
             self.writer.add_graph(self.net,[data.x,data.edge_index])
-
         
+        # self.scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=30, T_mult=1, eta_min=0.0005)
+        
+        # lmbda = lambda epoch: 0.8 ** epoch
+        # self.scheduler = torch.optim.lr_scheduler.MultiplicativeLR(self.optimizer, lr_lambda=lmbda)
+
+        self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=0.0005, max_lr=0.1,\
+            step_size_up=5,mode="exp_range",gamma=0.85)
         for epoch in range(epochs):
-            
             self.net.train()
             self.net.to(self.device)
             total_loss = 0
@@ -72,8 +77,9 @@ class Classifier():
                 loss  = self.criterion(pred,label)
                 loss.backward()
                 self.optimizer.step()
-                total_loss += loss.item() * batch.num_graphs
                 self.scheduler.step()
+                total_loss += loss.item() * batch.num_graphs 
+            # self.scheduler.step()
             total_loss /= len(data_loader.dataset)
             if verbose and epoch%(epochs//10)==0:
                 print('[%d] loss: %.3f' % (epoch + 1,total_loss))

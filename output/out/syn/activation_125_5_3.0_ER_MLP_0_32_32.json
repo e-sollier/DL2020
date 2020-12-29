@@ -1,0 +1,1 @@
+{"accuracy": 0.4452, "precision": 0.44446745894580136, "recall": 0.4452, "f1": 0.4438158883154376, "method": "activation", "n_features": 125, "n_char_features": 5, "signal_test": 3.0, "model": "ER", "classifier": "MLP", "n_hidden_GNN": 0, "n_hidden_FC": 32, "K": 4}
