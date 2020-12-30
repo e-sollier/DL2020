@@ -92,8 +92,8 @@ def gen_syn_data(
     n_communities=5,
     probs=[0.5, 0.1],
     n_iter=3,
-    model='SBM',
-    syn_method="diffusion",
+    model='BA',
+    syn_method="sign",
     random_seed=1996):
     """
     Generates a dataset. 
@@ -328,8 +328,23 @@ def lw(data, alphas):
 #     return precision, recall, f1_score
 
 def compare_graphs(A, Ah):
-    a = abs(A - Ah)
-    return np.sqrt(np.max(np.linalg.eigvals(np.inner(a, a))))
+    TP = np.sum(A[A==1] == Ah[A==1]) # true positive rate
+    TN = np.sum(A[A==0] == Ah[A==0]) # true negative rate
+    FP = np.sum(A[A==0] != Ah[A==0]) # false positive rate
+    FN = np.sum(A[A==1] != Ah[A==1]) # false negative rate
+    precision = TP / (TP + FP)
+    recall    = TP / (TP + FN)
+    f1_score  = 2 * precision * recall / (precision + recall)
+    accuracy = (TP+TN)/(TP+FP+TN+FN)
+    TPR = TP/(TP+FN)
+    TNR = TN/(TN+FP)
+    FPR = FP/(FP+TN)
+    FNR = FN/(FN+TP)
+    BA = (TPR+TNR)/2
+    return round(TPR,4), round(TNR,4), round(FPR,4), round(FNR,4), round(accuracy,4), round(BA,4) 
+
+def compare_graphs_eigv(A, Ah):
+    return round(np.sqrt(np.sum((np.linalg.eigvals(A)-np.linalg.eigvals(Ah))**2)),2)
 
 
 def community_layout(g, partition):

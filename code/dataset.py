@@ -31,6 +31,9 @@ class Dataset():
         self.y_test  = load_classes(self.input_dir, 'test', **kwargs)
 
     def create_graph(self, method='glasso_R', alphas=5, n_jobs=None):
+        """
+        Infer the graph (typically using graphical lasso) based on the data.
+        """
         #TODO: add **kwargs
         if method == 'glasso':
             self.Ah_train = glasso(self.X_train, alphas, n_jobs)
@@ -43,13 +46,18 @@ class Dataset():
             self.Ah_test  = lw(self.X_test, alphas)
 
     def create_noisy_true_graph(self,FPR,FNR):
-        nb_edges = np.sum(self.A_train) //2
+        """
+        Start from the true graph, and remove and add edges.
+        FPR is the proportion of edges, present in the initial graph, that will be removed.
+        FNR is the proportion of edges in the final graph that were not present in the initial graph.
+        """
         rows, cols = np.where(self.A_train == 1)
         edges = zip(rows.tolist(), cols.tolist())
         edges_unique = []
         for i,j in edges:
             if i<j:
                 edges_unique.append((i,j))
+        nb_edges = len(edges_unique)
         # Remove edges from the true graph
         nb_edges_removed = int(nb_edges * FNR)
         edges_removed_ind = np.random.choice(nb_edges,nb_edges_removed,replace=False)
@@ -60,16 +68,22 @@ class Dataset():
             A[j,i]=0
         
         # Add random edges
-        nb_edges_final = int(nb_edges * (1-FNR)/(1-FPR +0.000001))
+        nb_edges_final = int(nb_edges * (1-FNR)/(1-FPR +0.00001))
         nb_edges_added = int(nb_edges_final*FPR)
-        for k in range(nb_edges_added):
-            added_new = False
-            while not added_new:
-                i,j = np.random.choice(A.shape[0],2,replace=False)
-                if A[i,j]==0:
-                    added_new=True
+        if nb_edges_added>= A.shape[0]*A.shape[0] //2-3:
+            for i in range(A.shape[0]):
+                for j in range(A.shape[0]):
                     A[i,j]=1
                     A[j,i]=1
+        else:
+            for k in range(nb_edges_added):
+                added_new = False
+                while not added_new:
+                    i,j = np.random.choice(A.shape[0],2,replace=False)
+                    if A[i,j]==0:
+                        added_new=True
+                        A[i,j]=1
+                        A[j,i]=1
         self.Ah_train = A
 
     def score_graphs(self):
