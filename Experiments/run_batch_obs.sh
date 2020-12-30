@@ -12,7 +12,7 @@ done
 
 bsub -W 1:00 -R "rusage[mem=6000]" "python run.py -o out_obs --classifier MLP --n_hidden_FC 80 --n_hidden_FC2 40 --n_obs_train $n_obs_train --seed $seed"
 
-bsub -W 1:00 -R "rusage[mem=10000]" "python run.py -o out_obs --classifier MLP --n_hidden_FC 100 --n_hidden_FC2 80 --n_hidden_FC3 --n_obs_train $n_obs_train --seed $seed "
+bsub -W 1:00 -R "rusage[mem=10000]" "python run.py -o out_obs --classifier MLP --n_hidden_FC 100 --n_hidden_FC2 80 --n_hidden_FC3 60 --n_obs_train $n_obs_train --seed $seed "
 
 for infer_graph in True False; do
 for classifier in GraphSAGE; do
