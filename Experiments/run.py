@@ -25,8 +25,8 @@ parser.add_argument('--n_obs_train',type=int,default=500,help='Number of observa
 
 parser.add_argument('--n_obs_test',type=int,default=5000,help='Number of observations for testing (per class)')
 parser.add_argument('--graph_model',type=str,default='BA',help='Graph generation model')
-parser.add_argument('--signal_train',type=float,default=10,help='Signal for training data')
-parser.add_argument('--signal_test',type=float,default=2,help='Signal for test data')
+parser.add_argument('--signal_train',type=float,default=0,help='Signal for training data')
+parser.add_argument('--signal_test',type=float,default=0,help='Signal for test data')
 parser.add_argument('--diff_train',type=float,default=0.3,help='Diffusion coefficient for training data')
 parser.add_argument('--diff_test',type=float,default=0.3,help='Diffusion coefficient for test data')
 parser.add_argument('--noise_train',type=float,default=0.2,help='Noise for training data')

@@ -82,7 +82,7 @@ def gen_syn_data(
     n_features=10,
     n_edges=3,
     n_char_features=10,
-    signal=[10, 10],
+    signal=[0, 0],
     diff_coef=[0.1, 0.1],
     noise=[0.2, 0.2],
     n_communities=5,
@@ -146,7 +146,7 @@ def gen_syn_data(
                     for neighbor in graph_train.neighbors(f):
                         s+=features[neighbor]
                     #set the sign to the average sign of the neighbours
-                    features_next[f] = np.sign(s)* (np.abs(features[f]+signal[0]))
+                    features_next[f] = np.sign(s)* np.abs(features[f])
                 features = features_next
                 # Add additional noise
                 if noise[0] > 0:
@@ -163,7 +163,7 @@ def gen_syn_data(
                     for neighbor in graph_train.neighbors(f):
                         s+=features[neighbor]
                     # Set the sign to the average sign of the neighbours
-                    features_next[f] = np.sign(s)*  (np.abs(features[f]+signal[1]))
+                    features_next[f] = np.sign(s)*  np.abs(features[f])
                 features = features_next
                 # Add additional noise
                 if noise[1] > 0:
