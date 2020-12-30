@@ -1,1 +1,0 @@
-{"accuracy": 0.8236, "precision": 0.8352943198568843, "recall": 0.8236, "f1": 0.8276957626202713, "method": "diffusion", "n_features": 125, "n_char_features": 10, "signal_test": 5.0, "model": "BA", "classifier": "GraphSAGE", "n_hidden_GNN": 16, "n_hidden_FC": 0, "K": 1}

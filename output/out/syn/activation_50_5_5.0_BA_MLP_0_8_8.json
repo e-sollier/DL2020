@@ -1,1 +1,0 @@
-{"accuracy": 0.4576, "precision": 0.5302530403371258, "recall": 0.4576, "f1": 0.4569884348590187, "method": "activation", "n_features": 50, "n_char_features": 5, "signal_test": 5.0, "model": "BA", "classifier": "MLP", "n_hidden_GNN": 0, "n_hidden_FC": 8, "K": 4}
