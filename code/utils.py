@@ -286,10 +286,13 @@ def gen_syn_data(
 
 
 def glasso(data, alphas=5, n_jobs=None):
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
     cov = GraphicalLassoCV(alphas=alphas, n_jobs=n_jobs).fit(data)
     # print(cov)
     precision_matrix = cov.get_precision()
     adjacency_matrix = precision_matrix.astype(bool).astype(int)
+    adjacency_matrix[np.diag_indices_from(adjacency_matrix)] = 0
     return adjacency_matrix
 
 def glasso_R(data, alphas):
@@ -488,6 +491,8 @@ def get_dataloader(graph, X, y, batch_size=1,undirected=True):
 
     dataloader = geo_dt.DataLoader(list_graphs, batch_size=batch_size, shuffle=True)
     return dataloader
+
+
 
 def sample_vec(vec, n):
     vec_list = vec.tolist()
