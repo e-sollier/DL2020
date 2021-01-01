@@ -27,9 +27,7 @@ def select_hyperparameters_CV(
     for dropout_rate in dropout_rate_list:
         for alpha in alpha_list:
             score=0
-            print("alpha: " +str(alpha))
-            for train_dataloader,val_dataloader in dataset.CV_dataloaders(use_true_graph=use_true_graph,n_splits=5,batch_size=batch_size,graph_method=graph_method,alpha=alpha):
-                print(score)
+            for train_dataloader,val_dataloader in dataset.CV_dataloaders(use_true_graph=use_true_graph,n_splits=4,batch_size=batch_size,graph_method=graph_method,alpha=alpha):
                 clf = Classifier(n_features=n_features,n_classes=n_classes,classifier=classifier,K=K,n_hidden_FC=n_hidden_FC,n_hidden_GNN=n_hidden_GNN,\
                     dropout_GNN = dropout_rate, dropout_FC=dropout_rate, lr=lr,momentum=momentum,device=device)
 
@@ -75,7 +73,7 @@ def get_hyperparams(CV_dropout,CV_alpha,dataset,n_features,n_obs_train,n_classes
         if CV_dropout:
             dropout_rate_list=[0,0.1,0.2,0.5] # grid of dropout rate values
         else:
-            dropout_rate_list=dropout_rate
+            dropout_rate_list=[dropout_rate]
         if CV_alpha:
             alpha_list = [0.5,1,2,3,4,6] # grid of alpha values
         else:

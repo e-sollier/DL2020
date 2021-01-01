@@ -1,7 +1,7 @@
 #!/bin/sh
 
 for seed in 0 1 2 3 4 5 6 7 8 9 ; do
-for n_obs_train in 50 100 500 1000 2500 5000 7500 10000; do
+for n_obs_train in 50 100 500 1000 2500 5000 7500 10000 20000; do
 
 
 for classifier in MLP; do

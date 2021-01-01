@@ -45,6 +45,18 @@ class Classifier():
             self.net = GINConv(n_features=n_features, n_classes=n_classes,\
                 n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
                 dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
+        if classifier =="GraphConv":
+            self.net = GraphConv(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
+        if classifier =="MFConv":
+            self.net = MFConv(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
+        if classifier =="TransformerConv":
+            self.net = TransformerConv(n_features=n_features, n_classes=n_classes,\
+                n_hidden_GNN=n_hidden_GNN, n_hidden_FC=n_hidden_FC, \
+                dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
         # self.scheduler = lr_scheduler.OneCycleLR(self.optimizer, max_lr=0.01, steps_per_epoch=32)

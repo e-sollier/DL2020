@@ -6,7 +6,7 @@ import pandas as pd
 
 
 #directory containing the outputs of run.py (json files)
-results_dir = "Experiments/out_alpha"
+results_dir = "Experiments/out_layer"
 l=[]
 for f in os.listdir(results_dir):
     with open(os.path.join(results_dir,f)) as json_file:
@@ -14,10 +14,10 @@ for f in os.listdir(results_dir):
         l.append(data)
 df = pd.DataFrame(l)
 
-x_var = "alpha" # name of the variable that will be plotted on the x-axis
+x_var = "n_obs_train" # name of the variable that will be plotted on the x-axis
 y_var = "accuracy" # name of the variable that will be plotted on the y-axis
 
-type_vars = ["n_obs_train"]
+type_vars = ["classifier"]
 
 res={}
 for x in df.index:
@@ -29,9 +29,9 @@ for x in df.index:
         res[type_name][x_value]=[]
     res[type_name][x_value].append(df.loc[x,y_var])
 
+
 plt.rcParams.update({'font.size': 22})
-keys_sorted = [str(x) for x in sorted([int(x) for x in res])]
-for t in keys_sorted:
+for t in res:
     x=[]
     y=[]
     for x_val in res[t]:
@@ -43,11 +43,12 @@ for t in keys_sorted:
     ind = np.argsort(x)
     x=x[ind]
     y=y[ind]
-    plt.plot(x,y,label=t + " training obs. per class",linewidth=4)
+    plt.plot(x,y,label=t,linewidth=4)
 
 
 
-plt.xlabel(x_var)
-plt.ylabel(y_var)
+plt.xlabel("Number of training observations per class (log scale)")
+plt.ylabel("Accuracy")
+plt.xscale("log")
 plt.legend()
 plt.show()

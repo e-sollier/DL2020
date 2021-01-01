@@ -165,8 +165,59 @@ class GINConv(NN):
             n_hidden_FC, dropout_FC, dropout_GNN)
 
         self.layers_GNN.append(pyg_nn.GINConv(nn.Sequential(nn.Linear(1, n_hidden_GNN[0]),
-                                  nn.ReLU(), nn.Linear(n_hidden_GNN[0],n_hidden_GNN[0]))))
+                                  nn.ReLU(), nn.Linear(n_hidden_GNN[0],n_hidden_GNN[0])),eps=0.2))
         if self.n_layers_GNN > 1:
             for i in range(self.n_layers_GNN-1):
                 self.layers_GNN.append(pyg_nn.GINConv(nn.Sequential(nn.Linear(n_hidden_GNN[i], n_hidden_GNN[(i+1)]),
                                   nn.ReLU(), nn.Linear(n_hidden_GNN[(i+1)],n_hidden_GNN[(i+1)]))))
+
+class GraphConv(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(GraphConv, self).__init__(\
+            n_features, n_classes, n_hidden_GNN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.GraphConv(1, n_hidden_GNN[0]))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-1):
+                self.layers_GNN.append(pyg_nn.GraphConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
+
+class MFConv(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(MFConv, self).__init__(\
+            n_features, n_classes, n_hidden_GNN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.MFConv(1, n_hidden_GNN[0]))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-1):
+                self.layers_GNN.append(pyg_nn.MFConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
+
+class TransformerConv(NN):
+    def __init__(self, \
+        n_features, \
+        n_classes, \
+        n_hidden_GNN=[10], \
+        n_hidden_FC=[], \
+        dropout_GNN=0, \
+        dropout_FC=0):
+        super(TransformerConv, self).__init__(\
+            n_features, n_classes, n_hidden_GNN,\
+            n_hidden_FC, dropout_FC, dropout_GNN)
+
+        self.layers_GNN.append(pyg_nn.TransformerConv(1, n_hidden_GNN[0]))
+        if self.n_layers_GNN > 1:
+            for i in range(self.n_layers_GNN-1):
+                self.layers_GNN.append(pyg_nn.TransformerConv(n_hidden_GNN[i], n_hidden_GNN[(i+1)]))
