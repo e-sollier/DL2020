@@ -47,11 +47,3 @@ for t in ordered_names:
     x=x[ind]
     y=y[ind]
     plt.plot(x,y,label=name_map[t],linewidth=4)
-
-
-
-plt.xlabel("Number of training observations per class (log scale)")
-plt.ylabel("Accuracy")
-plt.xscale("log")
-plt.legend()
-plt.show()
