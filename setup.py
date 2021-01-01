@@ -10,7 +10,7 @@ except ImportError:  # Deps not yet installed
     __author__ = __email__ = ''
 
 setup(name='GNNProject',
-      version='0.0.1',
+      version='0.1.0',
       description='Graph-Structured Inductive Bias in Deep Learning with Application to Cell Type Classification',
       long_description=long_description,
       long_description_content_type="text/markdown",
