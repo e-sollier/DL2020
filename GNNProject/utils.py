@@ -2,7 +2,7 @@ import os
 import csv
 import numpy as np
 import pandas as pd
-#from graspologic.simulations import sbm
+from graspologic.simulations import sbm
 from sklearn.metrics import *
 from sklearn.covariance import GraphicalLassoCV, graphical_lasso
 from sklearn.preprocessing import StandardScaler
@@ -200,7 +200,7 @@ def gen_syn_data(
         graph_train = ig.Graph.Adjacency(adj_train.tolist())
         graph_test  = ig.Graph.Adjacency(adj_test.tolist())
     else:
-        raise("Unrecognized random graph generation model. Please use ER, BA or SBM.")
+        print("Unrecognized random graph generation model. Please use ER, BA or SBM.")
     X_train = []
     y_train = []
     X_test  = []
@@ -324,7 +324,7 @@ def gen_syn_data(
                 X_test.append(features)
                 y_test.append(c)
     else:
-        raise("Unrecognized synthetic dataset generation method.")
+        print("Unrecognized synthetic dataset generation method!")
     train_idx = np.random.permutation(len(y_train)) - 1
     X_train   = np.array(X_train)[train_idx, :]
     y_train   = np.array(y_train)[train_idx]
