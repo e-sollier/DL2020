@@ -85,15 +85,13 @@ In order to solve dependencies on Leonhard one should take the following steps:
     pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-1.5.1+cu101.html
     pip install torch-geometric
 
-
-Support and contribute
+Notebooks
 -------------------------------
-If you have a question or new architecture or a model that could be integrated into our pipeline, you can
-post an `issue <https://github.com/e-sollier/DL2020/issues/new>`__ or reach us by `email <mailto:eheidari@student.ethz.ch, esollier@student.ethz.ch, azagidull@student.ethz.ch>`_.
+To see some examples of our pipeline's capability, look at the `notbooks` directory.
 
-Reference
+Final Report
 -------------------------------
-The extend version of report for this project can be found `here <https://polybox.ethz.ch/index.php/s/FYnQKXRfeWoHlqO>`_.
+The extended version of the report for this project can be found `here <https://polybox.ethz.ch/index.php/s/FYnQKXRfeWoHlqO>`_.
 
 Reproducing the report figures 
 **********************
@@ -104,6 +102,15 @@ Reproducing the report figures
 - Fig. 5: `Experiments/run_batch_noise.sh` --> `Experiments/read_results_noise.sh`
 - Fig. 6: `Experiments/run_batch_layers.sh` --> `Experiments/read_results_layers.sh`
 - Fig. 7: `Experiments/run_batch_alpha.sh` --> `Experiments/read_results_alpha.sh`
+- Fig. 8: `notebooks/EBIC_analysis_optimal_alpha.ipynb`
+Reproducing the report table 
+**********************
+- table 1: `notebooks/EBIC_analysis_optimal_alpha.ipynb`
+
+Support and contribute
+-------------------------------
+If you have a question or new architecture or a model that could be integrated into our pipeline, you can
+post an `issue <https://github.com/e-sollier/DL2020/issues/new>`__ or reach us by `email <mailto:eheidari@student.ethz.ch, esollier@student.ethz.ch, azagidull@student.ethz.ch>`_.
 
 
 
