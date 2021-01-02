@@ -13,6 +13,7 @@ from community import community_louvain
 import umap
 import torch
 import torch_geometric.data as geo_dt
+from sklearn.utils.extmath import fast_logdet
 
 
 def load_adj(path):
@@ -410,6 +411,48 @@ def lw(data, alphas):
     return adjacency_matrix
 
 
+
+def ebic(covariance, precision, n_samples, n_features, gamma=0):
+    """
+    Extended Bayesian Information Criteria for model selection.
+    When using path mode, use this as an alternative to cross-validation for
+    finding lambda.
+    See:
+        "Extended Bayesian Information Criteria for Gaussian Graphical Models"
+        R. Foygel and M. Drton, NIPS 2010
+    Parameters
+    ----------
+    covariance : 2D ndarray (n_features, n_features)
+        Maximum Likelihood Estimator of covariance (sample covariance)
+    precision : 2D ndarray (n_features, n_features)
+        The precision matrix of the model to be tested
+    n_samples :  int
+        Number of examples.
+    n_features : int
+        Dimension of an example.
+    gamma : (float) \in (0, 1)
+        Choice of gamma=0 leads to classical BIC
+        Positive gamma leads to stronger penalization of large graphs.
+    Returns
+    -------
+    ebic score (float).  Caller should minimized this score.
+    """
+    l_theta = -np.sum(covariance * precision) + fast_logdet(precision)
+    l_theta *= n_features / 2.
+
+    # is something goes wrong with fast_logdet, return large value
+    if np.isinf(l_theta) or np.isnan(l_theta):
+        return 1e10
+
+    mask = np.abs(precision.flat) > np.finfo(precision.dtype).eps
+    precision_nnz = (np.sum(mask) - n_features) / 2.0  # lower off diagonal tri
+
+    return -2.0 * l_theta \
+        + precision_nnz * np.log(n_samples) \
+        + 4.0 * precision_nnz * np.log(n_features) * gamma
+    
+
+
 def compare_graphs(A, Ah):
     """
         Compares a (adjacency) matrix with a reference (adjacency) matrix.
@@ -597,8 +640,11 @@ def plot_lowDim(data, labels=None, title=None):
     reducer   = umap.UMAP()
     embedding = reducer.fit_transform(data)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=labels, cmap='Spectral', s=5)
+    plt.title(title)
     plt.xticks([], [])
-    plt.title(title, fontsize=24)
+    plt.yticks([], [])
+    plt.xlabel('UMAP1')
+    plt.ylabel('UMAP2')
 
 
 def compute_metrics(y_true, y_pred):
