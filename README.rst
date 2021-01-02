@@ -19,14 +19,20 @@ Synthetic data generation
 -----------
 We generate graph structured, labeled, synthetic data inspired by biological networks. It consists of two steps:
 1. Random Graph Generation:
+
 - **Erdős–Rényi model:** To generate plane random networks based on `Erdős & Rényi, 1959 <https://en.wikipedia.org/wiki/Barabási–Albert_model>`_)
+
 - **Barabási–Albert model:** To generate "scale-free" networks based on `Albert & Barabási, 2002 <https://en.wikipedia.org/wiki/Barabási–Albert_model>`_).
+
 - **Stochastic Block model:** To generate "modular" networks based on `Stochastic Block Models <https://en.wikipedia.org/wiki/Stochastic_block_model>`_)
 
 2. Message Passing on Graph (Data Generation):
 This happens once the graph is generated and the nodes are initialized by a Gaussian white noise. For each class a subset of nodes (features) are chosen randomly as 'characteristics'. After message passing, another Gaussian white noise is added to all nodes.  
+
 - **Information diffusion:** A Gaussian signal with a non-zero mean is added initially to the characteristic nodes. Each edge passes information based on the (global) edge capacity (diffusion coefficient) and the difference between its end nodes. Such a diffusion can be performed multiple times.
+
 - **Activation:** Characteristic nodes are 'activated' with a Gaussian signal weighted by average of their neighbors. 
+
 - **Sign:** Sign of characteristic nodes is set based on the sign of average of their neighbors. 
 
 Real data
