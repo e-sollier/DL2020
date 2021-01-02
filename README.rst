@@ -1,4 +1,4 @@
-<!-- |PyPI| |PyPIDownloads| |Docs| |travis| -->
+
 
 
 GNNProject: Graph-Structured Inductive Bias in Deep Learning
@@ -100,14 +100,3 @@ Reproducing the report figures
 
 
 
-<!-- .. |PyPI| image:: https://img.shields.io/pypi/v/scarches.svg
-   :target: https://pypi.org/project/scarches
-
-.. |PyPIDownloads| image:: https://pepy.tech/badge/scarches
-   :target: https://pepy.tech/project/scarches
-
-.. |Docs| image:: https://readthedocs.org/projects/scarches/badge/?version=latest
-   :target: https://scarches.readthedocs.io
-
-.. |travis| image:: https://travis-ci.com/theislab/scarches.svg?branch=master
-    :target: https://travis-ci.com/theislab/scarches -->
