@@ -16,6 +16,19 @@ import torch_geometric.data as geo_dt
 
 
 def load_adj(path):
+    """
+        loads the adjacency matrix.
+
+        Parameters
+        ----------
+        path: str
+           Path to the directory including `adj.txt` file.
+
+        Returns
+        -------
+        adj : The adjacency matrix
+        num_nodes : Number of nodes
+    """
     full_path = os.path.join(path, 'adj.txt')
     num_nodes = -1
     adj = []
@@ -31,6 +44,24 @@ def load_adj(path):
     return adj, num_nodes
 
 def load_classes(path, type, max_labels=None, **kwargs):
+    """
+        loads the classes.
+
+        Parameters
+        ----------
+        path: str
+            The path to the directory including `classes_train.txt` or `classes_test.txt`.
+            The file should be a table with a column named `'class_'`.
+        type: str
+            The type of the dataset, used to read the file `classes_{type}.txt`.
+        Returns
+        -------
+        labels : a list containing the labels 
+        one_hot_labels : a numpy ndarray with the one hot encoded labels.
+        num_graphs : number of samples
+        num_classes : number of distinct classes
+        nans : number of NA classes
+    """
     full_path = os.path.join(path, 'classes_{type}.txt'.format(type=type))
     classes = pd.read_csv(full_path)
     nans = pd.isna(classes['class_']).values
@@ -58,6 +89,19 @@ def load_classes(path, type, max_labels=None, **kwargs):
         return labels, one_hot_labels, num_graphs, max_labels + 1, nans
 
 def load_features(path, type, is_binary=False, **kwargs):
+    """
+        loads the input features.
+
+        Parameters
+        ----------
+        path: str
+            The path to the directory including `data_train.txt` or `data_test.txt`.
+        type: str
+            The type of the dataset, used to read the file `data_{type}.txt`.
+        Returns
+        -------
+        features : a numpy ndarray with features as columns and samples as rows.
+    """
     full_path = os.path.join(path, 'data_{type}.txt'.format(type=type))
     num_nodes = -1
     features = []
@@ -92,23 +136,51 @@ def gen_syn_data(
     syn_method="sign",
     random_seed=1996):
     """
-    Generates a dataset. 
-    Each class is defined by a set of characteristic features. 
-    Each feature starts with random values. For each observation, the characteristic features of its class are increased by "signal".
-    Then, values on each node diffuse through the graph.
-    Parameters:
-    ----------
-    n_classes: number of classes
-    n_obs: number of observations per class
-    n_features: number of features, each corresponding to a node in the graph
-    n_char_features: number of features that are specific to each class
-    signal: how much the value is increased for the characteristic features
-    diff_coef: how much each value transmits its value to the next
-    noise: noise level added at the end
-    Returns:
-    X: feature matrix
-    y: labels
-    graph: underlying graph
+        Generates synthetic training and test datasets based on an underlying random graph model.
+        Each class is defined by a set of characteristic features. 
+        Each feature starts with random values. For each observation, the characteristic features of its class are increased by "signal".
+        Then, values on each node are altered based on the synthetic method used.
+
+        Parameters:
+        ----------
+        n_classes: int
+            Number of classes
+        n_obs_train: int 
+            Number of observations per class for the training dataset
+        n_obs_test: int 
+            Number of observations per class for the test dataset
+        n_features: int
+            Number of features, each corresponding to a node in the graph
+        n_char_features: int
+            Number of features that are specific to each class
+        signal: [float, float]
+            The level of initial signal for the characteristic features, for training and test dataset respectively. 
+            Only used when `syn_method == 'diffusion'` or `syn_method == 'activation'`.
+        diff_coef: [float, float]
+            How much each value transmits its value over the edges, for training and test dataset respectively.
+            Only used when `syn_method == 'diffusion'`.
+        noise: [float, float]
+            (Gaussian) Noise level added at the end of the information passing, for training and test dataset respectively. 
+        n_communities: int
+            Number of graph communities for the Stochastic Block Model. Used only when `model == 'SBM'`.
+        probs: [float, float]
+            Probability of intra and inter cluster edges for the Stochastic Block Model. Used only when `model == 'SBM'`.
+        model: str
+            The random graph generation model. Can be `'BA'` for Barabási–Albert, `'ER'` for Erdős–Rényi, or `'SBM'` for Stochastic Block Model.
+        syn_method: str
+            The message passing synthetic process. Can be:
+                `'diffusion'` for diffusing information over edges based on the difference on the end nodes.
+                `'activation'` for activating a characteristic node based on its neighbors.
+                `'sign'` for changing the sign of a characteristic node based on the average sign of its neighbors.
+
+        Returns
+        -------
+        X_train : a numpy ndarray with features generated for the training dataset.
+        y_train : a numpy ndarray with labels generated for the training dataset.
+        adj_train : the adjacency matrix of the graph generated for the training dataset.
+        X_test : a numpy ndarray with features generated for the test dataset.
+        y_test : a numpy ndarray with labels generated for the test dataset.
+        adj_test : the adjacency matrix of the graph generated for the test dataset.
     """
     np.random.seed(random_seed)
     if model=='ER':
@@ -265,7 +337,19 @@ def gen_syn_data(
 
 
 def glasso(data, alphas=5, n_jobs=None):
-    """ Estimate the graph with graphical lasso"""
+    """
+        Estimates the graph with graphical lasso finding the best alpha based on cross validation
+
+        Parameters
+        ----------
+        data: numpy ndarray
+            The input data for to reconstruct/estimate a graph on. Features as columns and observations as rows.
+        alphas: int or array-like of shape (n_alphas,), dtype=float, default=5
+            Non-negative. If an integer is given, it fixes the number of points on the grids of alpha to be used. If a list is given, it gives the grid to be used. 
+        Returns
+        -------
+        adjacency matrix : the estimated adjacency matrix.
+    """
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
     cov = GraphicalLassoCV(alphas=alphas, n_jobs=n_jobs).fit(data)
@@ -275,7 +359,19 @@ def glasso(data, alphas=5, n_jobs=None):
     return adjacency_matrix
 
 def glasso_R(data, alphas):
-    """ Estimate the graph with graphical lasso"""
+    """
+        Estimates the graph with graphical lasso based on its implementation in R.
+
+        Parameters
+        ----------
+        data: numpy ndarray
+            The input data for to reconstruct/estimate a graph on. Features as columns and observations as rows.
+        alphas: float
+            Non-negative regularization parameter of the graphical lasso algorithm.
+        Returns
+        -------
+        adjacency matrix : the estimated adjacency matrix.
+    """
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
     _ , n_samples = data.shape
@@ -286,6 +382,19 @@ def glasso_R(data, alphas):
     return adjacency_matrix
 
 def lw(data, alphas):
+    """
+        Estimates the graph with Ledoit-Wolf estimator.
+
+        Parameters
+        ----------
+        data: numpy ndarray
+            The input data for to reconstruct/estimate a graph on. Features as columns and observations as rows.
+        alphas: float
+            The threshold on the precision matrix to determine edges.
+        Returns
+        -------
+        adjacency matrix : the estimated adjacency matrix.
+    """
     alpha=alphas
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
@@ -300,17 +409,25 @@ def lw(data, alphas):
     adjacency_matrix[np.diag_indices_from(adjacency_matrix)] = 0
     return adjacency_matrix
 
-# def compare_graphs(A, Ah):
-#     TP = np.sum(A[A==1] == Ah[A==1]) # true positive rate
-#     TN = np.sum(A[A==0] == Ah[A==0]) # true negative rate
-#     FP = np.sum(A[A==0] != Ah[A==0]) # false positive rate
-#     FN = np.sum(A[A==1] != Ah[A==1]) # false negative rate
-#     precision = TP / (TP + FP)
-#     recall    = TP / (TP + FN)
-#     f1_score  = 2 * precision * recall / (precision + recall)
-#     return precision, recall, f1_score
 
 def compare_graphs(A, Ah):
+    """
+        Compares a (adjacency) matrix with a reference (adjacency) matrix.
+
+        Parameters
+        ----------
+        A: numpy ndarray
+            The reference (adjacency) matrix.
+        Ah: numpy ndarray
+            The (adjacency) matrix to compare with the reference matrix.
+        Returns
+        -------
+        TPR : true positive rate.
+        TNR : true negative rate.
+        FPR : false positive rate.
+        FNR : false negative rate.
+        accuracy : accuracy.
+    """
     TP = np.sum(A[A==1] == Ah[A==1]) # true positive rate
     TN = np.sum(A[A==0] == Ah[A==0]) # true negative rate
     FP = np.sum(A[A==0] != Ah[A==0]) # false positive rate
@@ -327,6 +444,19 @@ def compare_graphs(A, Ah):
     return round(TPR,4), round(TNR,4), round(FPR,4), round(FNR,4), round(accuracy,4), round(BA,4) 
 
 def compare_graphs_eigv(A, Ah):
+    """
+        Compares a (adjacency) matrix with a reference (adjacency) matrix based on the spectral norm.
+
+        Parameters
+        ----------
+        A: numpy ndarray
+            The reference (adjacency) matrix.
+        Ah: numpy ndarray
+            The (adjacency) matrix to compare with the reference matrix.
+        Returns
+        -------
+        The norm-2 distance of the two matrices.
+    """
     return round(np.sqrt(np.sum((np.linalg.eigvals(A)-np.linalg.eigvals(Ah))**2)),2)
 
 
@@ -335,18 +465,18 @@ def community_layout(g, partition):
     Compute the layout for a modular graph.
 
 
-    Arguments:
+    Parameters:
     ----------
-    g -- networkx.Graph or networkx.DiGraph instance
+    g : networkx.Graph or networkx.DiGraph instance
         graph to plot
 
-    partition -- dict mapping int node -> int community
+    partition : dict mapping int node -> int community
         graph partitions
 
 
     Returns:
     --------
-    pos -- dict mapping int node -> (float x, float y)
+    pos : dict mapping int node -> (float x, float y)
         node positions
 
     """
@@ -363,6 +493,7 @@ def community_layout(g, partition):
     return pos
 
 def _position_communities(g, partition, **kwargs):
+
 
     # create a weighted graph, in which each node corresponds to a community,
     # and each edge weight to the number of edges between communities
@@ -421,6 +552,24 @@ def _position_nodes(g, partition, **kwargs):
     return pos
 
 def draw_graph(adjacency_matrix, node_color=None):
+    """
+        Draw a modular graph, also color its nodes based on the node communities detected by the Louvain algorithm.
+
+        Parameters:
+        ----------
+        adjacency_matrix : numpy ndarray
+            The adjacency matrix.
+
+        node_color : list, default=None
+            A list of colors to color nodes. If `None` the nodes will be colored based on the node communities detected by the Louvain algorithm.
+
+
+        Returns:
+        --------
+        pos : dict mapping int node -> (float x, float y)
+            node positions
+
+    """
     rows, cols = np.where(adjacency_matrix == 1)
     edges = zip(rows.tolist(), cols.tolist())
     g = nx.Graph()
@@ -429,19 +578,49 @@ def draw_graph(adjacency_matrix, node_color=None):
     pos = community_layout(g, partition)
     if node_color == None:
       node_color = list(partition.values())
-    # print(g.number_of_nodes())
-    # print(len(node_color))
     nx.draw(g, pos, node_color=node_color, node_size=10); 
     return list(partition.values())
 
-def plot_lowDim(data, labels = 'NA', title=None):
-    #TODO: add shape.
+def plot_lowDim(data, labels=None, title=None):
+    """
+        Visualizes the 2-dimensional embedding of a dataset based on the UMAP algorithm.
+
+        Parameters:
+        ----------
+        data : numpy ndarray
+            The input data with features as columns and observations as rows.
+
+        labels : list
+            The point labels. Used to color the points in the 2-dimensional plot.
+
+    """
     reducer   = umap.UMAP()
     embedding = reducer.fit_transform(data)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=labels, cmap='Spectral', s=5)
+    plt.xticks([], [])
     plt.title(title, fontsize=24)
 
+
 def compute_metrics(y_true, y_pred):
+    """
+        Computes prediction quality metrics.
+
+        Parameters:
+        ----------
+        y_true : 1d array-like, or label indicator array / sparse matrix
+            Ground truth (correct) labels.
+
+        y_pred : 1d array-like, or label indicator array / sparse matrix
+            Predicted labels, as returned by a classifier.
+
+        Returns:
+        --------
+        accuracy : accuracy
+        conf_mat : confusion matrix
+        precision : weighted precision score
+        recall : weighted recall score
+        f1 : weighted f1 score
+    """
     accuracy  = accuracy_score(y_true, y_pred)
     conf_mat  = confusion_matrix(y_true, y_pred)
     precision = precision_score(y_true, y_pred, average='weighted')
@@ -455,9 +634,29 @@ def compute_metrics(y_true, y_pred):
 
 def get_dataloader(graph, X, y, batch_size=1,undirected=True):
     """
-    Converts an igraph graph and a dataset (X,y) to a dataloader of pytorch geometrics graphs.
-    In the output, all of the graphs will have the same connectivity (given by the input graph),
-    but the node features will be the features from X.
+        Converts a graph and a dataset to a dataloader.
+        
+        Parameters:
+        ----------
+        graph : igraph object
+            The underlying graph to be fed to the graph neural networks.
+
+        X : numpy ndarray
+            Input dataset with columns as features and rows as observations.
+
+        y : numpy ndarray
+            Class labels.
+
+        batch_size: int, default=1
+            The batch size.
+
+        undirected: boolean
+            if the input graph is undirected (symmetric adjacency matrix).
+
+        Returns:
+        --------
+        dataloader : a pytorch-geometric dataloader. All of the graphs will have the same connectivity (given by the input graph),
+        but the node features will be the features from X.
     """
     n_obs, n_features = X.shape
     rows, cols = np.where(graph == 1)
@@ -479,9 +678,6 @@ def get_dataloader(graph, X, y, batch_size=1,undirected=True):
         y_tensor = torch.tensor(y[i])
         X_tensor = torch.tensor(X[i,:]).view(X.shape[1], 1).float()
         data     = geo_dt.Data(x=X_tensor, edge_index=edge_index, y=y_tensor)
-        # data     = geo_dt.Data(x=X_tensor, y=y_tensor)
-        # data.num_graphs = X.shape[0]
-        # data.num_nodes = X.shape[1]
         list_graphs.append(data.coalesce())
 
     dataloader = geo_dt.DataLoader(list_graphs, batch_size=batch_size, shuffle=True)
@@ -490,6 +686,21 @@ def get_dataloader(graph, X, y, batch_size=1,undirected=True):
 
 
 def sample_vec(vec, n):
+    """
+        Subsample a vector uniformly from each level. Used to subsample datasets with several classes in a balanced manner.
+        
+        Parameters:
+        ----------
+        vec : numpy ndarray
+            The vector to sample from.
+
+        n : int
+            Number of samples per level.
+
+        Returns:
+        --------
+        to_ret : a numpy array including indices of the selected subset.
+    """
     vec_list = vec.tolist()
     vec_list = set(vec_list)
     to_ret = np.array([], dtype='int')
