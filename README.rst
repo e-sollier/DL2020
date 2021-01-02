@@ -7,7 +7,7 @@ GNNProject: Graph-Structured Inductive Bias in Deep Learning
 
 We investigate to which extent inferring the graph structure from the data and using it as an inductive bias to a Graph Neural Network (GNN) improves robustness and generalization in comparison to the standard fully connected neural networks (FCNN) without any prior structural information. Furthermore, we explore how the quality of an inductive bias (i.e., the graph structure reconstructed from the high-dimentional data) impacts the performance. To that end, we carry out multiple experiments with both synthetic and real datasets, to compare performance of GNNs and FCNNs in various settings, varying characteristics of the input dataset, such as number of features, number of observations, noise level, or quality of the input structure. 
 
-The models are implemented with `pytroch <https://pytorch.org/docs/stable/index.html>_ and `pytroch-geometric <https://pytorch-geometric.readthedocs.io/en/latest/>`_ in python.
+The models are implemented with `pytroch <https://pytorch.org/docs/stable/index.html>`_ and `pytroch-geometric <https://pytorch-geometric.readthedocs.io/en/latest/>`_ in python.
 
 **NOTE:** Here, we talk about graph classification, which each observation to be classified is represented by a graph, with nodes representing features. The graph structure for all observations is the same, the only difference comes from node values.
 
