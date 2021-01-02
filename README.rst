@@ -16,7 +16,7 @@ Modules
 -------------------------------
 
 Synthetic data generation
------------
+**********************
 We generate graph structured, labeled, synthetic data inspired by biological networks. It consists of two steps:
 1. Random Graph Generation:
 
@@ -36,15 +36,15 @@ This happens once the graph is generated and the nodes are initialized by a Gaus
 - **Sign:** Sign of characteristic nodes is set based on the sign of average of their neighbors. 
 
 Real data
------------
+**********************
 Our framework is applicable to any kind of (n_obs * n_features) multi-class dataset, as it is able to reconstruct the underlying graph. Indeed, the performance is better when there is an underlying dependence structure among features. A sample real dataset can be found `here <https://polybox.ethz.ch/index.php/s/12DdfFYADCetsNE>`_. This is a preprocessed version of `this dataset <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132044>`_.
 
 Graph inference
------------
+**********************
 We infer the underlying graph structure based on the sparse high-dimensional correlation matrices estimated using the graphical lasso (`Friedman et al., 2008 <https://en.wikipedia.org/wiki/Graphical_lasso>`_) or the Ledoit-Wolf shrinkage estimator (`Ledoit & Wolf, 2004 <https://en.wikipedia.org/wiki/Graphical_lasso>`_). The adjacency matrix for the observed dataset and correspondingly the graph structure is reconstructed based on estimation of the inverse of a sparse high-dimensional correlation matrix. 
 
 Classifiers
------------
+**********************
 We use GNNs and compare them with FCNNs as baselines. We define GNNs based on `message passing <https://pytorch-geometric.readthedocs.io/en/latest/notes/create_gnn.html>`_: each node generates a message based on its features, and sends it to its neighbors. Then each node aggregates the messages of its neighbors and uses this aggregate to updates its features. The aggregation is done with a permutation-invariant function, like mean, sum or max. Typically, we use one round of message passing and we use 8 hidden features per node. Several types of graph convolutional layers are implemented: 
 
  - `GraphSAGE <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.SAGEConv>`_ 
@@ -71,7 +71,7 @@ Then, ``cd`` to the scArches folder and run the install command::
 If you have problems with the torch-geometric dependency, look at `this <https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html>`_. 
 
 Dependencies on ETH's Leonhard Cluster
------------
+**********************
 In order to solve dependencies on Leonhard one should take the following steps:
 1. Import the following modules::
 
@@ -96,7 +96,7 @@ Reference
 The extend version of report for this project can be found `here <https://polybox.ethz.ch/index.php/s/FYnQKXRfeWoHlqO>`_.
 
 Reproducing the report figures 
------------
+**********************
 - Fig. 1: `Experiments/run_batch_graphQual.sh` --> `Experiments/read_results_graphQual.sh`
 - Fig. 2: `Experiments/run_batch_obs.sh` --> `Experiments/read_results_obs.sh`
 - Fig. 3: `Experiments/run_batch_features.sh` --> `Experiments/read_results_features.sh`
