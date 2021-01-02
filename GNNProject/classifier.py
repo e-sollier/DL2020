@@ -9,10 +9,55 @@ from GNNProject.model import *
 
 
 class Classifier():
+    """
+        A Neural Network Classifier. A number of Graph Neural Networks (GNN) and an MLP are implemented.
+        Parameters
+        ----------
+        n_features : int
+            number of input features.
+        n_classes : int
+            number of classes.
+        n_hidden_GNN : list, default=[]
+            list of integers indicating sizes of GNN hidden layers.
+        n_hidden_FC : list, default=[]
+            list of integers indicating sizes of FC hidden layers. If a GNN is used, this indicates FC hidden layers after the GNN layers.
+        K : integer, default=4
+            Convolution layer filter size. Used only when `classifier == 'Chebnet'`.
+        dropout_GNN : float, default=0
+            dropout rate for GNN hidden layers.
+        dropout_FC : float, default=0
+            dropout rate for FC hidden layers.
+        classifier : str, default='MLP'
+            Can be one of the following:
+                - 'MLP' : multilayer perceptron
+                - 'GraphSAGE': GraphSAGE Network 
+                - 'Chebnet': Chebyshev spectral Graph Convolutional Network
+                - 'GATConv': Graph Attentional Neural Network
+                - 'GENConv': GENeralized Graph Convolution Network
+                - 'GINConv': Graph Isoform Network
+                - 'GraphConv': Graph Convolutional Neural Network
+                - 'MFConv': Convolutional Networks on Graphs for Learning Molecular Fingerprints
+                - 'TransformerConv': Graph Transformer Neural Network
+        lr : float, default=0.001
+            base learning rate for the SGD optimization algorithm.
+        momentum : float, default=0.9
+            base momentum for the SGD optimization algorithm.
+        log_dir : str, default=None
+            path to the log directory. Specifically, used for tensorboard logs.
+        device : str, default='cpu'
+            the processing unit.
+
+
+
+        See also
+        --------
+        Classifier.fit : fits the classifier to data
+        Classifier.eval : evaluates the classifier predictions
+    """
     def __init__(self,
         n_features,
         n_classes,
-        n_hidden_GNN=[10],
+        n_hidden_GNN=[],
         n_hidden_FC=[],
         K=4,
         dropout_GNN=0,
@@ -59,16 +104,25 @@ class Classifier():
                 dropout_FC=dropout_FC, dropout_GNN=dropout_GNN) 
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=lr, momentum=momentum)
-        # self.scheduler = lr_scheduler.OneCycleLR(self.optimizer, max_lr=0.01, steps_per_epoch=32)
-        # self.scheduler = lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=1, eta_min=0.0005, last_epoch=-1)
-        #self.scheduler = torch.optim.lr_scheduler.CyclicLR(self.optimizer, base_lr=0.0005, max_lr=0.1,\
-        #   step_size_up=5,mode="exp_range",gamma=0.85)
         self.logging   = log_dir is not None
         self.device    = device
         if self.logging:
             self.writer = SummaryWriter(log_dir=log_dir,flush_secs=1)
  
     def fit(self,data_loader,epochs,test_dataloader=None,verbose=False):
+    """
+        fits the classifier to the input data.
+        Parameters
+        ----------
+        data_loader : torch-geometric dataloader
+            the training dataset.
+        epochs : int
+            number of epochs.
+        test_dataloader : torch-geometric dataloader, default=None
+            the test dataset on which the model is evaluated in each epoch.
+        verbose : boolean, default=False
+            whether to print out loss during training.
+    """    
         if self.logging:
             data= next(iter(data_loader))
             self.writer.add_graph(self.net,[data.x,data.edge_index])
@@ -106,9 +160,23 @@ class Classifier():
         
 
     def eval(self,data_loader,verbose=False):
+    """
+        evaluates the model based on predictions
+        Parameters
+        ----------
+        test_dataloader : torch-geometric dataloader, default=None
+            the dataset on which the model is evaluated.
+        verbose : boolean, default=False
+            whether to print out loss during training.
+        Returns
+        ----------
+        accuracy : accuracy
+        conf_mat : confusion matrix
+        precision : weighted precision score
+        recall : weighted recall score
+        f1_score : weighted f1 score
+    """  
         self.net.eval()
-        # self.net.to('cpu')
-        # self.net.to(self.device)
         correct = 0
         total = 0
         y_true = []

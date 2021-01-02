@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib
 
 #directory containing the outputs of run.py (json files)
-results_dir = "output/results_2020_12_30"
+results_dir = "Experiments/out_real"
 n_obs_test  = 500
 l=[]
 for f in os.listdir(results_dir):

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from setuptools import setup, find_packages
 
-long_description = Path('README.rst').read_text('utf-8')
+# long_description = Path('README.rst').read_text('utf-8')
 
 try:
     from GNNProject import __author__, __email__
@@ -12,8 +12,8 @@ except ImportError:  # Deps not yet installed
 setup(name='GNNProject',
       version='0.1.0',
       description='Graph-Structured Inductive Bias in Deep Learning with Application to Cell Type Classification',
-      long_description=long_description,
-      long_description_content_type="text/markdown",
+      # long_description=long_description,
+      # long_description_content_type="text/markdown",
       url='https://github.com/e-sollier/DL2020/',
       author=__author__,
       author_email=__email__,

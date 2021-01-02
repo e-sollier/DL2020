@@ -1,0 +1,7 @@
+analysis/
+data_input/
+data_raw/
+output/
+__pycache__/
+docs/_build
+*.egg-info
