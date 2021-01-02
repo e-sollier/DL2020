@@ -1,5 +1,4 @@
 import os
-from sklearn.model_selection import KFold
 from GNNProject.utils import *
 
 class Dataset():

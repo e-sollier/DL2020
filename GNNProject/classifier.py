@@ -110,19 +110,20 @@ class Classifier():
             self.writer = SummaryWriter(log_dir=log_dir,flush_secs=1)
  
     def fit(self,data_loader,epochs,test_dataloader=None,verbose=False):
-    """
-        fits the classifier to the input data.
-        Parameters
-        ----------
-        data_loader : torch-geometric dataloader
-            the training dataset.
-        epochs : int
-            number of epochs.
-        test_dataloader : torch-geometric dataloader, default=None
-            the test dataset on which the model is evaluated in each epoch.
-        verbose : boolean, default=False
-            whether to print out loss during training.
-    """    
+        """
+            fits the classifier to the input data.
+            Parameters
+            ----------
+            data_loader : torch-geometric dataloader
+                the training dataset.
+            epochs : int
+                number of epochs.
+            test_dataloader : torch-geometric dataloader, default=None
+                the test dataset on which the model is evaluated in each epoch.
+            verbose : boolean, default=False
+                whether to print out loss during training.
+        """    
+    
         if self.logging:
             data= next(iter(data_loader))
             self.writer.add_graph(self.net,[data.x,data.edge_index])
@@ -160,22 +161,22 @@ class Classifier():
         
 
     def eval(self,data_loader,verbose=False):
-    """
-        evaluates the model based on predictions
-        Parameters
-        ----------
-        test_dataloader : torch-geometric dataloader, default=None
-            the dataset on which the model is evaluated.
-        verbose : boolean, default=False
-            whether to print out loss during training.
-        Returns
-        ----------
-        accuracy : accuracy
-        conf_mat : confusion matrix
-        precision : weighted precision score
-        recall : weighted recall score
-        f1_score : weighted f1 score
-    """  
+        """
+            evaluates the model based on predictions
+            Parameters
+            ----------
+            test_dataloader : torch-geometric dataloader, default=None
+                the dataset on which the model is evaluated.
+            verbose : boolean, default=False
+                whether to print out loss during training.
+            Returns
+            ----------
+            accuracy : accuracy
+            conf_mat : confusion matrix
+            precision : weighted precision score
+            recall : weighted recall score
+            f1_score : weighted f1 score
+        """  
         self.net.eval()
         correct = 0
         total = 0
