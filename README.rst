@@ -46,6 +46,7 @@ We infer the underlying graph structure based on the sparse high-dimensional cor
 Classifiers
 -----------
 We use GNNs and compare them with FCNNs as baselines. We define GNNs based on (`message passing <https://pytorch-geometric.readthedocs.io/en/latest/notes/create_gnn.html>`_): each node generates a message based on its features, and sends it to its neighbors. Then each node aggregates the messages of its neighbors and uses this aggregate to updates its features. The aggregation is done with a permutation-invariant function, like mean, sum or max. Typically, we use one round of message passing and we use 8 hidden features per node. Several types of graph convolutional layers are implemented: 
+
  - `GraphSAGE <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.SAGEConv>`_ 
  - `Chebyshev convolutions <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.ChebConv>`_
  - `MFConv <https://pytorch-geometric.readthedocs.io/en/latest/modules/nn.html#torch_geometric.nn.conv.MFConv`_
