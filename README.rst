@@ -87,7 +87,7 @@ In order to solve dependencies on Leonhard one should take the following steps:
 
 Notebooks
 -------------------------------
-To see some examples of our pipeline's capability, look at the `notbooks <https://github.com/e-sollier/DL2020/tree/main/notebooks>`__ directory.
+To see some examples of our pipeline's capability, look at the `notebooks <https://github.com/e-sollier/DL2020/tree/main/notebooks>`__ directory.
 
 Final Report
 -------------------------------
