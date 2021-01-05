@@ -37,7 +37,7 @@ This happens once the graph is generated and the nodes are initialized by a Gaus
 
 Real data
 **********************
-Our framework is applicable to any kind of (n_obs * n_features) multi-class dataset, as it is able to reconstruct the underlying graph. Indeed, the performance is better when there is an underlying dependence structure among features. A sample real dataset can be found `here <https://polybox.ethz.ch/index.php/s/pxKp4ztYWbCMl7y>`_. This is a preprocessed version of `this dataset <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132044>`_.
+Our framework is applicable to any kind of (n_obs * n_features) multi-class dataset, as it is able to reconstruct the underlying graph. Indeed, the performance is better when there is an underlying dependence structure among features. A sample real dataset can be found `here <https://polybox.ethz.ch/index.php/s/pxKp4ztYWbCMl7y>`_. This is a preprocessed version of `this dataset <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132044>`_. Preprocessing is done in R and can be found `here <https://github.com/e-sollier/DL2020/blob/main/notebooks/GNN_input_prep_pbmc.Rmd>`_
 
 Graph inference
 **********************
