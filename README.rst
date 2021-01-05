@@ -37,7 +37,7 @@ This happens once the graph is generated and the nodes are initialized by a Gaus
 
 Real data
 **********************
-Our framework is applicable to any kind of (n_obs * n_features) multi-class dataset, as it is able to reconstruct the underlying graph. Indeed, the performance is better when there is an underlying dependence structure among features. A sample real dataset can be found `here <https://polybox.ethz.ch/index.php/s/12DdfFYADCetsNE>`_. This is a preprocessed version of `this dataset <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132044>`_.
+Our framework is applicable to any kind of (n_obs * n_features) multi-class dataset, as it is able to reconstruct the underlying graph. Indeed, the performance is better when there is an underlying dependence structure among features. A sample real dataset can be found `here <https://polybox.ethz.ch/index.php/s/pxKp4ztYWbCMl7y>`_. This is a preprocessed version of `this dataset <https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE132044>`_.
 
 Graph inference
 **********************
@@ -87,11 +87,11 @@ In order to solve dependencies on Leonhard one should take the following steps:
 
 Notebooks
 -------------------------------
-To see some examples of our pipeline's capability, look at the `notbooks` directory.
+To see some examples of our pipeline's capability, look at the `notbooks <https://github.com/e-sollier/DL2020/tree/main/notebooks>`__ directory.
 
 Final Report
 -------------------------------
-The extended version of the report for this project can be found `here <https://polybox.ethz.ch/index.php/s/FYnQKXRfeWoHlqO>`_.
+The extended version of the report for this project can be found `here <https://polybox.ethz.ch/index.php/s/IDzaixWUherVf7L>`_.
 
 Reproducing the report figures 
 **********************
